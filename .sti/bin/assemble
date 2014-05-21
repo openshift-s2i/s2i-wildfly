@@ -25,6 +25,7 @@ if [ "$1" = "-h" ]; then
   echo "into the Wildfly deployments directory as is."
   echo "Wildfly configuration can be overridden by supplying files in <src>/cfg, these files"
   echo "will be copied into Wildfly standalone/configuration."  
+  exit 0
 fi
 
 # Source code provided to STI will be bind-mounted at /tmp/src
