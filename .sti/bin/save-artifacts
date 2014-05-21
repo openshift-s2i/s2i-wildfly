@@ -2,7 +2,13 @@
 
 echo -n "Saving build artifacts..."
 cd /
-# /opt/wildfly is the wildfly user homedir
-tar czf /tmp/artifacts/maven.tar.gz /opt/wildfly/.m2
+# /opt/wildfly is the wildfly user homedir so .m2 is the maven repo dir
+# /opt/wildfly/source/target is the class files from the previous build
+if [ -f /opt/wildfly/source/target ]; then
+    tar czf /tmp/artifacts/maven.tar.gz /opt/wildfly/.m2 /opt/wildfly/source/target
+else
+    tar czf /tmp/artifacts/maven.tar.gz /opt/wildfly/.m2
+fi
+
 echo "...done"
 
