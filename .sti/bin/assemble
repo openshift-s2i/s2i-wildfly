@@ -15,6 +15,18 @@ function restore_saved_artifacts() {
   fi
 }
 
+# Dump usage information if invoked with -h
+if [ $1 eq "-h" ]; then
+  echo "This Wildfly assemble script consumes a JEE project and deploys the war files"
+  echo "to the Wildfly deployments directory."
+  echo "If a pom.xml is present, the project is built with maven and the output in target will"
+  echo "be copied into the Wildfly deployments directory."
+  echo "If war files are present in <src>/target or <src>/deployments they will be copied"
+  echo "into the Wildfly deployments directory as is."
+  echo "Wildfly configuration can be overridden by supplying files in <src>/cfg, these files"
+  echo "will be copied into Wildfly standalone/configuration."  
+fi
+
 # Source code provided to STI will be bind-mounted at /tmp/src
 # and then copied into /opt/wildfly/source for building.
 local_source_dir=/opt/wildfly/source
@@ -36,7 +48,15 @@ if [ -f "$local_source_dir/pom.xml" ]; then
   
   pushd $local_source_dir &> /dev/null
   JAVA_HOME=/etc/alternatives/java_sdk_1.7.0  
-  mvn clean package -Popenshift -DskipTests
+
+  if [ -z "$MAVEN_ARGS" ]; then
+    export MAVEN_ARGS="clean package -Popenshift -DskipTests"
+  fi
+  echo "Found pom.xml... attempting to build with 'mvn -e ${MAVEN_ARGS}'"
+
+  mvn --version
+  mvn $MAVEN_ARGS
+
   err=$?
   if [ $err -ne 0 ]; then
     echo "Aborting due to error code $err from mvn package"
