@@ -16,7 +16,7 @@ function restore_saved_artifacts() {
 }
 
 # Dump usage information if invoked with -h
-if [ $1 = "-h" ]; then
+if [ "$1" = "-h" ]; then
   echo "This Wildfly assemble script consumes a JEE project and deploys the war files"
   echo "to the Wildfly deployments directory."
   echo "If a pom.xml is present, the project is built with maven and the output in target will"
