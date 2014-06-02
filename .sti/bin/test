@@ -1,0 +1,23 @@
+#!/bin/bash -x
+
+/opt/sti/bin/run &
+
+MAX_ATTEMPTS=10
+SLEEP_TIME=1
+ATTEMPT=1
+RESULT=1
+
+while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+response_code=$(curl -s -w %{http_code} -o /dev/null http://localhost:8080/)
+  status=$?
+  if [ $status -eq 0 ]; then
+if [ $response_code -eq 200 ]; then
+RESULT=0
+    fi
+break
+fi
+ATTEMPT=$(( $ATTEMPT + 1 ))
+  sleep $SLEEP_TIME
+done
+
+exit $RESULT

@@ -23,8 +23,7 @@ RUN (curl -0 http://mirror.cc.columbia.edu/pub/software/apache/maven/maven-3/3.0
     tar -zx -C /usr/local) && ln -sf /usr/local/apache-maven-3.0.5/bin/mvn /usr/local/bin/mvn && \
     mkdir -p /wildfly && (curl -0 http://download.jboss.org/wildfly/8.1.0.CR1/wildfly-8.1.0.CR1.tar.gz | \
     tar -zx --strip-components=1 -C /wildfly) && /wildfly/bin/add-user.sh admin passw0rd_ --silent && \
-    mkdir /tmp/src && (curl -L0 https://github.com/bparees/openshift-jee-sample/archive/master.tar.gz | \
-    tar -zx -C /tmp/src --strip-components=1 ) && mkdir -p /opt/wildfly/source
+    mkdir -p /opt/wildfly/source
 
 ADD ./wfmodules/ /wildfly/modules/
 
@@ -43,8 +42,7 @@ WORKDIR /opt/wildfly/source
 RUN groupadd -r wildfly -g 433 && \
     useradd -u 431 -r -g wildfly -d /opt/wildfly -s /sbin/nologin -c "Wildfly user" wildfly && \
     chown -R wildfly:wildfly /wildfly && \
-    chown -R wildfly:wildfly /opt/wildfly && \
-    chown -R wildfly:wildfly /tmp/src
+    chown -R wildfly:wildfly /opt/wildfly
 
 USER wildfly
 EXPOSE 7600 8080 9990 9999
