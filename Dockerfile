@@ -11,7 +11,7 @@ MAINTAINER Ben Parees <bparees@redhat.com>
 #
 RUN ( \
       echo "update"; \
-      echo "install tar unzip which bc"; \
+      echo "install tar unzip which bc lsof"; \
       echo "install java-1.7.0-openjdk java-1.7.0-openjdk-devel"; \
       echo "run"; \
     ) | yum shell -y && yum clean all -y
@@ -46,5 +46,6 @@ WORKDIR /opt/wildfly/source
 #    chown -R wildfly:wildfly /opt/wildfly
 
 #USER wildfly
+
 EXPOSE 7600 8080 9990 9999
 CMD /usr/bin/usage

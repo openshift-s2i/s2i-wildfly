@@ -1,4 +1,6 @@
-#!/bin/bash 
+#!/bin/bash
+
+PID_FILE=/tmp/wildfly.pid
 
 # restore maven dependencies downloaded in a previous build,
 # so they do not have to be downloaded again.  
@@ -15,16 +17,176 @@ function restore_saved_artifacts() {
   fi
 }
 
-# Dump usage information if invoked with -h
-if [ "$1" = "-h" ]; then
+# Return the deployment-scanner configuration
+function getscanconfig() {
+    count=0
+    while [ ${count} -lt 4 ]; do
+      scanconfig=`/wildfly/bin/jboss-cli.sh -c "/subsystem=deployment-scanner/:read-resource(recursive=true)" 2>&1 || :`
+      if [[ $scanconfig =~ '"outcome" => "success"' ]] ; then
+        SCANCONFIG=$scanconfig
+        return
+      fi
+      let count+=1
+
+      sleep 2
+    done
+}
+
+# Verify that the deployment scanner has finished running
+function waitondeployments() {
+    if ! ismgmtup; then
+      echo "Timed out waiting for management listening port"
+      echo "Could not connect to JBoss management interface, skipping deployment verification"
+    else 
+      SCANCONFIG=""
+      c=0
+      while [ "$SCANCONFIG" == "" ] && [ $c -lt 5 ]; do
+        getscanconfig
+        if [ "$SCANCONFIG" != "" ]; then
+          break
+        fi
+        sleep 2
+        let c=c+1
+      done
+
+      if [ "$SCANCONFIG" == "" ]; then
+        echo "Could not connect to JBoss management interface, skipping deployment verification"
+      elif [[ $SCANCONFIG =~ '"scan-enabled" => true' ]]; then
+        DEPLOYMENTS_DIR=/wildfly/standalone/deployments
+        pushd $DEPLOYMENTS_DIR
+
+        artifacts=()
+        
+        # REMOVE after https://github.com/dotcloud/docker/pull/5807 drops
+        ln -s /proc/self/fd /dev/fd
+        
+        while read -r -d $'\0'; do
+          artifacts+=("$REPLY")
+        done < <(find . -iregex '.*\.\([ejrsw]ar\|zip\)$' -print0)
+
+        deployexploded=false
+        if [[ $SCANCONFIG =~ '"auto-deploy-exploded" => true' ]]; then
+          deployexploded=true
+        fi
+        deployarchive=false
+        if [[ $SCANCONFIG =~ '"auto-deploy-zipped" => true' ]]; then
+          deployarchive=true
+        fi 
+
+        artifactsdeployed=()
+        artifactsfailed=()
+        artifactsskipped=()
+        artifactsunknown=()
+        for artifact in ${artifacts[*]}; do
+          if ( [ -f $artifact ] && $deployarchive ) || ( [ -d $artifact ] && $deployexploded ); then         
+            # TODO triple check this logic, add a timeout 
+            while [[ -f ${artifact}.isdeploying || -f ${artifact}.pending ]]; do
+              echo "Artifact: ${artifact} is still deploying"
+              sleep 10
+            done
+
+            if [ -f ${artifact}.deployed ]; then
+              artifactsdeployed+=($artifact)
+            elif [ -f ${artifact}.failed ]; then
+              artifactsfailed+=($artifact)
+            else
+              artifactsunknown+=($artifact)
+            fi
+
+          else
+            # artifact skipped because of deployment scanner config
+            artifactsskipped+=($artifact)
+          fi
+        done
+
+        popd
+
+        if [ ${#artifactsskipped[@]} -gt 0 ]; then
+          echo "Artifacts skipped because of deployment-scanner configuration: ${artifactsskipped[*]}"
+        fi
+
+        if [ ${#artifactsfailed[@]} -gt 0 ]; then
+          echo "Failed deployments: ${artifactsfailed[*]}"
+          return 1
+        fi
+
+        if [ ${#artifactsdeployed[@]} -gt 0 ]; then
+          echo "Artifacts deployed: ${artifactsdeployed[*]}"
+        fi
+
+        if [ ${#artifactsunknown[@]} -gt 0 ]; then
+          echo "Artifacts in an unknown state: ${artifactsunknown[*]}"
+        fi
+      else
+          echo "Deployment scanner disabled, skipping deployment verification"
+      fi
+    fi
+}
+
+# Check if the server http port is up
+function ishttpup() {
+    count=0
+    while [ ${count} -lt 64 ]
+    do
+        if /usr/sbin/lsof -P -n -i "@0.0.0.0:8080" | grep "(LISTEN)" > /dev/null; then
+            echo "Found 0.0.0.0:8080 listening port"
+            return 0
+        fi
+        # if the process failed to start, error out immediately
+        # rather than waiting for the timeout on the port being available.
+        pid=$(cat $PID_FILE);
+        if ! ps | grep -v grep | grep $pid > /dev/null; then
+          return 2
+        fi
+
+        let count=${count}+1
+
+        sleep 2
+    done
+
+    return 1
+}
+
+# Check if the server mgmt port is up
+function ismgmtup() {
+    let count=0
+    while [ ${count} -lt 10 ]
+    do
+        if /usr/sbin/lsof -P -n -i "@0.0.0.0:9990" | grep "(LISTEN)" > /dev/null; then
+            echo "Found 0.0.0.0:9990 listening port"
+            return 0
+        fi
+        let count=${count}+1
+
+        sleep 2
+    done
+
+    return 1
+}
+
+function usage() {
   echo "This Wildfly assemble script consumes a JEE project and deploys the war files"
   echo "to the Wildfly deployments directory."
-  echo "If a pom.xml is present, the project is built with maven and the output in target will"
-  echo "be copied into the Wildfly deployments directory."
+  echo "If a pom.xml is present in the source directory, the project is built with maven and the"
+  echo "output in target will be copied into the Wildfly deployments directory."
   echo "If war files are present in <src>/target or <src>/deployments they will be copied"
   echo "into the Wildfly deployments directory as is."
   echo "Wildfly configuration can be overridden by supplying files in <src>/cfg, these files"
   echo "will be copied into Wildfly standalone/configuration."  
+  echo 
+  echo "Maven build arguments can be overridden by setting MAVEN_ARGS via the \"--env\" argument to STI"
+  echo ""
+  echo "Sample invocation: "
+  echo "  sti build git://github.com/bparees/openshift-jee-sample openshift/wildfly-8-centos wildflytest -s https://raw.githubusercontent.com/openshift/wildfly-8-centos/master/.sti/bin"
+  echo
+  echo "You can then run the resulting image via:"
+  echo "  docker run -p :8080 wildflytest"
+
+}
+
+# Dump usage information if invoked with -h
+if [ "$1" = "-h" ]; then
+  usage
   exit 0
 fi
 
@@ -65,44 +227,47 @@ if [ -f "$local_source_dir/pom.xml" ]; then
   fi
 
   echo "Copying built war files into $deploy_dir for later deployment..."
-  if [ -d $local_source_dir/target ]; then
-    cp $local_source_dir/target/*.war $deploy_dir >& /dev/null
-  fi
-  if [ -d $local_source_dir/deployments ]; then
-    cp $local_source_dir/deployments/*.war $deploy_dir >& /dev/null
-  fi
-  
-  if [ -d $local_source_dir/cfg ]; then
-    echo "Copying config files from project..."
-    cp cfg/* /wildfly/standalone/configuration
-  fi
-
-  if [ -d $local_source_dir/modules ]; then
-    echo "Copying modules from project..."
-    mkdir /wildfly/provided_modules
-    cp -r modules/* /wildfly/provided_modules
-  fi
-
-  echo "...done"
-
   popd &> /dev/null
 else
   echo "Copying binaries in source directory into $deploy_dir for later deployment..."
-  if [ -d $local_source_dir/target ]; then
-    cp $local_source_dir/target/*.war $deploy_dir >& /dev/null
-  fi
-  if [ -d $local_source_dir/deployments ]; then
-    cp $local_source_dir/deployments/*.war $deploy_dir >& /dev/null
-  fi
-  if [ -d $local_source_dir/cfg ]; then
-    echo "Copying config files from project..."
-    cp cfg/* /wildfly/standalone/configuration
-  fi
-
-  if [ -d $local_source_dir/modules ]; then
-    echo "Copying modules from project..."
-    mkdir /wildfly/provided_modules
-    cp -r modules/* /wildfly/provided_modules
-  fi
-  echo "...done"
 fi
+
+if [ -d $local_source_dir/target ]; then
+  cp $local_source_dir/target/*.war $deploy_dir >& /dev/null
+fi
+if [ -d $local_source_dir/deployments ]; then
+  cp $local_source_dir/deployments/*.war $deploy_dir >& /dev/null
+fi
+
+if [ -d $local_source_dir/cfg ]; then
+  echo "Copying config files from project..."
+  cp cfg/* /wildfly/standalone/configuration
+fi
+
+if [ -d $local_source_dir/modules ]; then
+  echo "Copying modules from project..."
+  mkdir /wildfly/provided_modules
+  cp -r modules/* /wildfly/provided_modules
+fi
+echo "...done"
+
+
+echo "Starting wildfly for deployment"
+/wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 &
+echo $! > ${PID_FILE}
+
+rc=0
+ishttpup || rc=$?
+if [ $rc -eq 1 ]; then
+  echo "Timed out waiting for http listening port for $cartridge_type process"
+  exit 1
+elif [ $rc -eq 2 ]; then
+  echo "$cartridge_type process failed to start"
+  exit 2
+fi
+ 
+waitondeployments
+rc=$?
+/wildfly/bin/jboss-cli.sh --connect --command=:shutdown
+rm /tmp/wildfly.pid
+exit $rc
