@@ -1,6 +1,8 @@
 #!/bin/bash
 echo "This is a Source To Image (STI) builder image.
-To use it, install STI: https://github.com/openshift/docker-source-to-images. 
+To use it, install STI[1] which is now part of the geard[2] project:
+[1]https://github.com/openshift/geard/tree/master/sti 
+[2]https://github.com/openshift/geard
 
 Sample invocation: 
     sti build git://github.com/bparees/openshift-jee-sample openshift/wildfly-8-centos wildflytest -s https://raw.githubusercontent.com/openshift/wildfly-8-centos/master/.sti/bin
