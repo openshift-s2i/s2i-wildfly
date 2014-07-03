@@ -93,8 +93,6 @@ Environment variables
 Usage
 ---------------------
 
-  echo "  sti build git://github.com/bparees/openshift-jee-sample openshift/wildfly-8-centos wildflytest -s https://raw.githubusercontent.com/openshift/wildfly-8-centos/master/.sti/bin"
-
 **Building the [openshift-jee-sample](https://github.com/bparees/openshift-jee-sample) JEE application..**
 
 1. **using standalone [STI](https://github.com/openshift/geard/tree/master/sti) and running the resulting image by [Docker](http://docker.io):**
