@@ -7,14 +7,9 @@ FROM centos
 
 MAINTAINER Ben Parees <bparees@redhat.com>
 
-# Execute update && install in one yum command.
-#
-RUN ( \
-      echo "update"; \
-      echo "install tar unzip which bc lsof"; \
-      echo "install java-1.7.0-openjdk java-1.7.0-openjdk-devel"; \
-      echo "run"; \
-    ) | yum shell -y && yum clean all -y
+RUN yum update -y && yum install -y tar unzip bc which lsof \
+  java-1.7.0-openjdk java-1.7.0-openjdk-devel && \
+  yum clean all -y
 
 # Install Maven, Wildfly 8 and sample JEE application
 # The sample application will be built/run if no other source is bind-mounted to mask it.
