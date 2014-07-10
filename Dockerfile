@@ -3,7 +3,7 @@
 # This image provides a base for building and running wildfly applications.
 # It builds using maven and runs the resulting artifacts on wildfly 8.1.
 
-FROM centos
+FROM centos:centos6
 
 MAINTAINER Ben Parees <bparees@redhat.com>
 
