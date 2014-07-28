@@ -42,5 +42,5 @@ WORKDIR /opt/wildfly/source
 
 #USER wildfly
 
-EXPOSE 7600 8080 9990 9999
+EXPOSE 7600 8080 8787 9990 9999
 CMD /usr/bin/usage
