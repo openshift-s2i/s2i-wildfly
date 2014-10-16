@@ -1,0 +1,11 @@
+#!/bin/bash -e
+
+if [ -z "$1" ]; then
+  exec /usr/bin/usage
+fi
+
+if [ "$1" != "run" -a "$1" != "save-artifacts" ]; then
+  tar -C /tmp -xf -
+fi
+
+exec /tmp/scripts/$1
