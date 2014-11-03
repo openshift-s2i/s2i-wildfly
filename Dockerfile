@@ -7,7 +7,7 @@ FROM centos:centos6
 
 MAINTAINER Ben Parees <bparees@redhat.com>
 
-RUN yum update -y && yum install -y tar unzip bc which lsof \
+RUN yum install -y tar unzip bc which lsof \
   java-1.7.0-openjdk java-1.7.0-openjdk-devel && \
   yum clean all -y
 
