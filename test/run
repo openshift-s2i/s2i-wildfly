@@ -13,6 +13,10 @@ image_dir=$(readlink -zf ${test_dir}/..)
 scripts_url="file://${image_dir}/.sti/bin"
 cid_file=$(mktemp -u --suffix=.cid)
 
+# Since we built the candidate image locally, we don't want STI attempt to pull
+# it from Docker hub
+sti_args="--forcePull=false -s ${scripts_url}"
+
 # TODO: This should be part of the image metadata
 # TODO: There will be most likely something running on host port 8080 so remap
 #       this to 9292.
@@ -28,7 +32,7 @@ container_exists() {
 }
 
 run_sti_build() {
-  sti build -s ${scripts_url} file://${test_dir}/test-app ${IMAGE_NAME} ${IMAGE_NAME}-testapp
+  sti build ${sti_args} file://${test_dir}/test-app ${IMAGE_NAME} ${IMAGE_NAME}-testapp
 }
 
 prepare() {
@@ -68,7 +72,7 @@ check_result() {
 }
 
 test_usage() {
-  sti usage -s ${scripts_url} ${IMAGE_NAME} &>/dev/null
+  sti usage ${sti_args} ${IMAGE_NAME} &>/dev/null
 }
 
 test_connection() {

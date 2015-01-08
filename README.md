@@ -59,14 +59,6 @@ Repository organization
       archiving those. In this image, this script will archive the
       maven dependencies and previously built java class files.
 
-
-  *   **test**
-
-      After the application image is built, we want to check that when we create a new
-      container based on that image, this container will respond to HTTP calls.
-      This image contains a sample JEE application in the **test-app** folder. This
-      sample application is run when a test is performed.
-
 * **`wfbin/`**
 
   Contains script used to launch wildfly after performing environment variable
@@ -89,6 +81,19 @@ Environment variables
     *save-artifacts* scripts are downloaded/copied from. By default the scripts
     in this repository will be used, but users can provide an alternative
     location and run their own scripts.
+
+Contributing
+------------
+
+In order to test your changes to this STI image or to the STI scripts, you can
+use the `test/run` script. Before that, you have to build the 'candidate' image:
+
+```
+$ docker build -t openshift/ruby-20-centos-candidate .
+```
+
+After that you can execute `./test/run`. You can also use `make test` to
+automate this.
 
 Usage
 ---------------------
