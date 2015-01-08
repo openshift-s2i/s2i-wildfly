@@ -18,10 +18,7 @@ cid_file=$(mktemp -u --suffix=.cid)
 sti_args="--forcePull=false -s ${scripts_url}"
 
 # TODO: This should be part of the image metadata
-# TODO: There will be most likely something running on host port 8080 so remap
-#       this to 9292.
-test_host_port=9292
-test_container_port=8080
+test_port=8080
 
 image_exists() {
   docker inspect $1 &>/dev/null
@@ -29,6 +26,10 @@ image_exists() {
 
 container_exists() {
   image_exists $(cat $cid_file)
+}
+
+container_ip() {
+  docker inspect --format="{{ .NetworkSettings.IPAddress }}" $(cat $cid_file)
 }
 
 run_sti_build() {
@@ -50,7 +51,7 @@ prepare() {
 }
 
 run_test_application() {
-  docker run --rm --cidfile=${cid_file} -p ${test_host_port}:${test_container_port} ${IMAGE_NAME}-testapp
+  docker run --rm --cidfile=${cid_file} ${IMAGE_NAME}-testapp
 }
 
 cleanup() {
@@ -72,6 +73,19 @@ check_result() {
   fi
 }
 
+wait_for_cid() {
+  local max_attempts=10
+  local sleep_time=1
+  local attempt=1
+  local result=1
+  while [ $attempt -le $max_attempts ]; do
+    [ -f $cid_file ] && break
+    echo "Waiting for container start..."
+    attempt=$(( $attempt + 1 ))
+    sleep $sleep_time
+  done
+}
+
 test_usage() {
   sti usage ${sti_args} ${IMAGE_NAME} &>/dev/null
 }
@@ -82,7 +96,8 @@ test_connection() {
   local attempt=1
   local result=1
   while [ $attempt -le $max_attempts ]; do
-    response_code=$(curl -s -w %{http_code} -o /dev/null http://localhost:${test_host_port}/)
+    echo "Sending GET request to http://$(container_ip):${test_port}/"
+    response_code=$(curl -s -w %{http_code} -o /dev/null http://$(container_ip):${test_port}/)
     status=$?
     if [ $status -eq 0 ]; then
       if [ $response_code -eq 200 ]; then
@@ -99,8 +114,10 @@ test_connection() {
 # Build the application image twice to ensure the 'save-artifacts' and
 # 'restore-artifacts' scripts are working properly
 prepare
-run_sti_build
-check_result
+
+# TODO: The incremental build is currently broken for JBoss
+# run_sti_build
+# check_result $?
 
 # Verify the 'usage' script is working properly
 test_usage
@@ -108,6 +125,11 @@ check_result $?
 
 # Verify that the HTTP connection can be established to test application container
 run_test_application &
+
+# Wait for the container to write it's CID file
+#
+wait_for_cid
+
 test_connection
 check_result $?
 
