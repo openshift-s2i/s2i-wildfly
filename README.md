@@ -89,7 +89,7 @@ In order to test your changes to this STI image or to the STI scripts, you can
 use the `test/run` script. Before that, you have to build the 'candidate' image:
 
 ```
-$ docker build -t openshift/ruby-20-centos-candidate .
+$ docker build -t openshift/wildfly-8-centos-candidate .
 ```
 
 After that you can execute `./test/run`. You can also use `make test` to
