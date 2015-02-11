@@ -213,29 +213,34 @@ if [ -d $LOCAL_SOURCE_DIR/modules ]; then
 fi
 echo "...done"
 
+# This logic is intended to deploy the app as part of assemble
+# but many apps fail to deploy because they require additional
+# resources to be present, eg databases, which are not available
+# at build time, so don't do this for now.
+
 # add admin user
-/wildfly/bin/add-user.sh $ADMIN $PASSWORD --silent
+#/wildfly/bin/add-user.sh $ADMIN $PASSWORD --silent
 
-echo "Starting wildfly for deployment"
-/wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 &
-echo $! > ${PID_FILE}
+#echo "Starting wildfly for deployment"
+#/wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 &
+#echo $! > ${PID_FILE}
 
-rc=0
-ishttpup || rc=$?
-if [ $rc -eq 1 ]; then
-  echo "Timed out waiting for http listening port for wildfly process"
-  exit 1
-elif [ $rc -eq 2 ]; then
-  echo "wildfly process failed to start"
-  exit 2
-fi
+#rc=0
+#ishttpup || rc=$?
+#if [ $rc -eq 1 ]; then
+#  echo "Timed out waiting for http listening port for wildfly process"
+#  exit 1
+#elif [ $rc -eq 2 ]; then
+#  echo "wildfly process failed to start"
+#  exit 2
+#fi
 
-waitondeployments
-rc=$?
-/wildfly/bin/jboss-cli.sh -u=$ADMIN -p=$PASSWORD -c ":shutdown"
-rm /tmp/wildfly.pid
+#waitondeployments
+#rc=$?
+#/wildfly/bin/jboss-cli.sh -u=$ADMIN -p=$PASSWORD -c ":shutdown"
+#rm /tmp/wildfly.pid
 
 # remove admin user
-sed -i '/^#/! s/^/#/' /wildfly/{standalone,domain}/configuration/mgmt-{groups,users}.properties
+#sed -i '/^#/! s/^/#/' /wildfly/{standalone,domain}/configuration/mgmt-{groups,users}.properties
 
 exit $rc
