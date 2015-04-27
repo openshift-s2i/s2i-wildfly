@@ -150,6 +150,41 @@ function ismgmtup() {
   return 1
 }
 
+function install_jrebel() {
+  local nullglobopt=$(shopt -p nullglob)
+  shopt -s nullglob
+  local found=false
+  for war in $1/*.war; do
+    if unzip -l "$war" WEB-INF/classes/rebel-remote.xml > /dev/null; then
+      echo "JRebel: rebel-remote.xml found in $war"
+      found=true
+    fi
+  done
+  eval $nullglobopt
+  
+  ! $found && return 1
+  
+  echo "JRebel: Fetching version index ..."
+  local line=$(curl -s https://dl.zeroturnaround.com/jrebel/index.yml | grep "^[0-9]" | sort -V -k 1,1 -t ":" -b | tail -1)
+  local parts=(${line//: / })
+  local version=${parts[0]}
+  local url=${parts[1]}
+  local jrzip=$(basename "$url")
+  echo "JRebel: Latest version is $version"
+  
+  pushd ${HOME} &> /dev/null
+  
+  echo "JRebel: Downloading $url ..."
+  curl -sO "$url"
+  
+  echo "JRebel: Extracting $jrzip ..."
+  unzip -qq "$jrzip"
+  rm "$jrzip"
+  
+  popd &> /dev/null
+  return 0
+}
+
 ADMIN=admin
 PASSWORD=passw0rd_
 
@@ -199,6 +234,10 @@ if [ -d $LOCAL_SOURCE_DIR/target ]; then
 fi
 if [ -d $LOCAL_SOURCE_DIR/deployments ]; then
   cp $LOCAL_SOURCE_DIR/deployments/*.war $DEPLOY_DIR >& /dev/null
+fi
+
+if [ -z "$DISABLE_JREBEL" -o "$DISABLE_JREBEL" = "false" ]; then
+  install_jrebel $DEPLOY_DIR
 fi
 
 if [ -d $LOCAL_SOURCE_DIR/cfg ]; then
