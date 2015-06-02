@@ -4,13 +4,13 @@ PID_FILE=/tmp/wildfly.pid
 
 # restore maven dependencies downloaded in a previous build,
 # so they do not have to be downloaded again.
-# /tmp/artifacts will only be present in the incremental build scenario
+# /opt/openshift/artifacts will only be present in the incremental build scenario
 # in which the target image name is an existing docker image which contains
 # dependencies from a prior build execution.
 function restore_saved_artifacts() {
-  if [ "$(ls /tmp/artifacts/ 2>/dev/null)" ]; then
+  if [ "$(ls /opt/openshift/destination/artifacts/ 2>/dev/null)" ]; then
     echo -n "Restoring saved artifacts from prior build..."
-    mv /tmp/artifacts/* $HOME/.
+    mv /openshift/artifacts/* $HOME/.
   fi
 }
 
@@ -197,7 +197,7 @@ DEPLOY_DIR=/wildfly/standalone/deployments
 mkdir -p $DEPLOY_DIR
 
 # Copy the source for compilation
-cp -ad /tmp/src/* $LOCAL_SOURCE_DIR
+cp -ad /opt/openshift/destination/src/* $LOCAL_SOURCE_DIR
 
 # If a pom.xml is present, this is a normal build scenario
 # so run maven.
