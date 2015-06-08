@@ -6,7 +6,7 @@
 FROM openshift/base-centos7
 
 RUN yum install -y --enablerepo=centosplus \
-    tar unzip bc which lsof java-1.8.0-openjdk.x86_64 java-1.8.0-openjdk-devel.x86_64 && \
+    tar unzip bc which lsof java-1.8.0-openjdk java-1.8.0-openjdk-devel && \
     yum clean all -y
 
 # Install Maven, Wildfly 8 and sample JEE application
