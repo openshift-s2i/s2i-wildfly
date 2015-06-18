@@ -34,6 +34,7 @@ ADD ./wfcfg/standalone.xml /wildfly/standalone/configuration/standalone.xml
 RUN groupadd -r wildfly -g 433 && \
     useradd -u 431 -r -g wildfly -d /opt/wildfly -s /sbin/nologin -c "Wildfly user" wildfly && \
     chown -R wildfly:wildfly /wildfly && \
+    chmod -R go+rw /wildfly/standalone && \
     chown -R wildfly:wildfly /opt/wildfly && \
     mkdir /opt/openshift/destination && \
     chown -R wildfly:wildfly /opt/openshift
