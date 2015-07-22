@@ -44,6 +44,6 @@ ENV HOME /opt/wildfly
 WORKDIR /opt/wildfly/source
 USER    wildfly
 
-EXPOSE 7600 8080 8787 9990 9999
+EXPOSE 8080
 
 CMD ["usage"]
