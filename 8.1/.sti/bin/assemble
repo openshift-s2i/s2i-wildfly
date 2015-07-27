@@ -4,13 +4,13 @@ PID_FILE=/tmp/wildfly.pid
 
 # restore maven dependencies downloaded in a previous build,
 # so they do not have to be downloaded again.
-# /opt/openshift/artifacts will only be present in the incremental build scenario
+# /opt/s2i/destination/artifacts will only be present in the incremental build scenario
 # in which the target image name is an existing docker image which contains
 # dependencies from a prior build execution.
 function restore_saved_artifacts() {
-  if [ "$(ls /opt/openshift/destination/artifacts/ 2>/dev/null)" ]; then
+  if [ "$(ls /opt/s2i/destination/artifacts/ 2>/dev/null)" ]; then
     echo -n "Restoring saved artifacts from prior build..."
-    mv /openshift/artifacts/* $HOME/.
+    mv /opt/s2i/destination/artifacts/* $HOME/.
   fi
 }
 
@@ -153,8 +153,8 @@ function ismgmtup() {
 ADMIN=admin
 PASSWORD=passw0rd_
 
-# Source code provided to STI is at ${HOME}/source
-LOCAL_SOURCE_DIR=${HOME}/source
+# Source code provided to S2I is at ${HOME}
+LOCAL_SOURCE_DIR=${HOME}
 mkdir -p $LOCAL_SOURCE_DIR
 
 # Resulting WAR files will be deployed to /wildfly/standalone/deployments
@@ -162,7 +162,7 @@ DEPLOY_DIR=/wildfly/standalone/deployments
 mkdir -p $DEPLOY_DIR
 
 # Copy the source for compilation
-cp -ad /opt/openshift/destination/src/* $LOCAL_SOURCE_DIR
+cp -Rf /opt/s2i/destination/src/. $LOCAL_SOURCE_DIR
 
 # If a pom.xml is present, this is a normal build scenario
 # so run maven.
@@ -176,6 +176,9 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
 
   if [ -z "$MAVEN_ARGS" ]; then
     export MAVEN_ARGS="package -Popenshift -DskipTests"
+  fi
+  if [ -z "$MAVEN_ARGS_APPEND"]; then
+    export MAVEN_ARGS="$MAVEN_ARGS $MAVEN_ARGS_APPEND"
   fi
   echo "Found pom.xml... attempting to build with 'mvn -e ${MAVEN_ARGS}'"
 
