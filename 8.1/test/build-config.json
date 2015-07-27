@@ -2,7 +2,7 @@
   "kind": "BuildConfig",
   "apiVersion": "v1beta1",
   "metadata":{
-    "name": "wildfly-8-centos-build"
+    "name": "wildfly-81-centos-build"
   },
   "triggers": [
     {
@@ -22,7 +22,7 @@
     "source" : {
       "type" : "Git",
       "git" : {
-        "uri": "git://github.com/openshift/wildfly-8-centos.git"
+        "uri": "git://github.com/openshift/wildfly-81-centos.git"
       }
     },
     "strategy": {
@@ -31,12 +31,12 @@
         "image": "openshift/sti-image-builder",
         "exposeDockerSocket": true,
         "env": [
-          { "name": "IMAGE_NAME", "value": "openshift/wildfly-8-centos-candidate"}
+          { "name": "IMAGE_NAME", "value": "openshift/wildfly-81-centos-candidate"}
         ]
       }
     }
   },
   "labels": {
-    "name": "wildfly-8-centos-build"
+    "name": "wildfly-81-centos-build"
   }
 }
