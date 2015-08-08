@@ -63,6 +63,11 @@ for dir in ${dirs}; do
 
   if [[ -v TEST_MODE ]]; then
     IMAGE_NAME=${IMAGE_NAME} test/run
+
+    if [[ $? -eq 0 ]] && [[ "${TAG_ON_SUCCESS}" == "true" ]]; then
+      echo "-> Re-tagging ${IMAGE_NAME} image to ${IMAGE_NAME%"-candidate"}"
+      docker tag -f $IMAGE_NAME ${IMAGE_NAME%"-candidate"}
+    fi
   fi
 
   popd > /dev/null
