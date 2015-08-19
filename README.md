@@ -43,7 +43,7 @@ using standalone [S2I](https://github.com/openshift/source-to-image) and then ru
 resulting image with [Docker](http://docker.io) execute:
 
 ```
-$ sti build git://github.com/bparees/openshift-jee-sample openshift/wildfly-81-centos wildflytest
+$ sti build git://github.com/bparees/openshift-jee-sample openshift/wildfly-81-centos7 wildflytest
 $ docker run -p 8080:8080 wildflytest
 ```
 
