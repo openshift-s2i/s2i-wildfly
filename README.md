@@ -77,7 +77,7 @@ Repository organization
 
         CentOS based Dockerfile
 
-    * **`.sti/bin/`**
+    * **`s2i/bin/`**
 
         This folder contains scripts that are run by [S2I](https://github.com/openshift/source-to-image):
 

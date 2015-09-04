@@ -34,8 +34,8 @@ ADD ./contrib/wfmodules/ /wildfly/modules/
 ADD ./contrib/wfbin/standalone.conf /wildfly/bin/standalone.conf
 ADD ./contrib/wfcfg/standalone.xml /wildfly/standalone/configuration/standalone.xml
 
-# Copy the STI scripts from the specific language image to /usr/local/sti
-COPY ./.sti/bin/ /usr/local/sti
+# Copy the S2I scripts from the specific language image to /usr/local/sti
+COPY ./s2i/bin/ /usr/local/sti
 
 # Create wildfly group and user, set file ownership to that user.
 RUN chmod -R go+rw /wildfly && \

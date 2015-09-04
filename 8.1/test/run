@@ -10,12 +10,11 @@ IMAGE_NAME=${IMAGE_NAME-openshift/wildfly-81-centos-candidate}
 
 test_dir="$(readlink -zf $(dirname "${BASH_SOURCE[0]}"))"
 image_dir=$(readlink -zf ${test_dir}/..)
-scripts_url="file://${image_dir}/.sti/bin"
 cid_file=$(mktemp -u --suffix=.cid)
 
 # Since we built the candidate image locally, we don't want S2I attempt to pull
 # it from Docker hub
-s2i_args="--force-pull=false -s ${scripts_url}"
+s2i_args="--force-pull=false"
 
 # TODO: This should be part of the image metadata
 test_port=8080
