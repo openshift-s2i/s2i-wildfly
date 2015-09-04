@@ -32,8 +32,8 @@ $ cd sti-wildfly
 $ make build VERSION=8.1
 ```
 
-** Note: by omitting the `VERSION` parameter, the build/test action be performed 
-on all provided versions of WildFly.  Since we are currently only providing 
+** Note: by omitting the `VERSION` parameter, the build/test action be performed
+on all provided versions of WildFly.  Since we are currently only providing
 version `8.1`, you can omit this parameter.**
 
 Usage
@@ -43,7 +43,7 @@ using standalone [S2I](https://github.com/openshift/source-to-image) and then ru
 resulting image with [Docker](http://docker.io) execute:
 
 ```
-$ sti build git://github.com/bparees/openshift-jee-sample openshift/wildfly-81-centos7 wildflytest
+$ s2i build git://github.com/bparees/openshift-jee-sample openshift/wildfly-81-centos7 wildflytest
 $ docker run -p 8080:8080 wildflytest
 ```
 
@@ -75,7 +75,7 @@ Repository organization
 
     * **Dockerfile**
 
-        CentOS based Dockerfile    
+        CentOS based Dockerfile
 
     * **`.sti/bin/`**
 
@@ -116,7 +116,7 @@ Repository organization
     * **`contrib/`**
 
         This folder contains commonly used modules
-    
+
         * **`wfbin/`**
 
             Contains script used to launch wildfly after performing environment variable
@@ -171,8 +171,8 @@ file inside your source code repository.
     This value will be appended to either the default maven arguments, or the value of MAVEN_ARGS if MAVEN_ARGS is set.
 
 * MYSQL_DATABASE
-    
-    If set, WildFly will attempt to define a MySQL datasource based on the assumption you have an OpenShift service named "mysql" defined.  
+
+    If set, WildFly will attempt to define a MySQL datasource based on the assumption you have an OpenShift service named "mysql" defined.
     It will attempt to reference the following environment variables which are automatically defined if the "mysql" service exists:
     MYSQL_SERVICE_PORT
     MYSQL_SERVICE_HOST
@@ -180,8 +180,8 @@ file inside your source code repository.
     MYSQL_USER
 
 * POSTGRESQL_DATABASE
-    
-    If set, WildFly will attempt to define a PostgreSQL datasource based on the assumption you have an OpenShift service named "postgresql" defined.  
+
+    If set, WildFly will attempt to define a PostgreSQL datasource based on the assumption you have an OpenShift service named "postgresql" defined.
     It will attempt to reference the following environment variables which are automatically defined if the "postgresql" service exists:
     POSTGRESQL_SERVICE_PORT
     POSTGRESQL_SERVICE_HOST
