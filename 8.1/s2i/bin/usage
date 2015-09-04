@@ -7,7 +7,7 @@ To use it, install S2I: https://github.com/openshift/source-to-image.
 
 Sample invocation:
 
-sti build git://github.com/bparees/openshift-jee-sample openshift/wildfly-81-centos wildflytest
+s2i build git://github.com/bparees/openshift-jee-sample openshift/wildfly-81-centos wildflytest
 
 You can then run the resulting image via:
 docker run -p 8080:8080 wildflytest
@@ -19,6 +19,6 @@ If war files are present in <src>/target or <src>/deployments they will be copie
 into the Wildfly deployments directory as is.
 Wildfly configuration can be overridden by supplying files in <src>/cfg, these files
 will be copied into Wildfly standalone/configuration.
-The default Maven build arguments can be overridden by setting MAVEN_ARGS via the "--env" argument to STI
+The default Maven build arguments can be overridden by setting MAVEN_ARGS via the "--env" argument to S2I
 The default Maven build arguments can be appended by setting MAVEN_ARGS_APPEND.
 EOF

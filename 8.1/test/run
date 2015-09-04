@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# The 'run' performs a simple test that verifies that STI image.
-# The main focus here is to excersise the STI scripts.
+# The 'run' performs a simple test that verifies that S2I image.
+# The main focus here is to excersise the S2I scripts.
 #
 # IMAGE_NAME specifies a name of the candidate image used for testing.
 # The image has to be available before this script is executed.
@@ -10,12 +10,11 @@ IMAGE_NAME=${IMAGE_NAME-openshift/wildfly-81-centos-candidate}
 
 test_dir="$(readlink -zf $(dirname "${BASH_SOURCE[0]}"))"
 image_dir=$(readlink -zf ${test_dir}/..)
-scripts_url="file://${image_dir}/.sti/bin"
 cid_file=$(mktemp -u --suffix=.cid)
 
-# Since we built the candidate image locally, we don't want STI attempt to pull
+# Since we built the candidate image locally, we don't want S2I attempt to pull
 # it from Docker hub
-sti_args="--force-pull=false -s ${scripts_url}"
+s2i_args="--force-pull=false"
 
 # TODO: This should be part of the image metadata
 test_port=8080
@@ -32,8 +31,8 @@ container_ip() {
   docker inspect --format="{{ .NetworkSettings.IPAddress }}" $(cat $cid_file)
 }
 
-run_sti_build() {
-  sti build ${sti_args} file://${test_dir}/test-app ${IMAGE_NAME} ${IMAGE_NAME}-testapp
+run_s2i_build() {
+  s2i build ${s2i_args} file://${test_dir}/test-app ${IMAGE_NAME} ${IMAGE_NAME}-testapp
 }
 
 prepare() {
@@ -41,14 +40,14 @@ prepare() {
     echo "ERROR: The image ${IMAGE_NAME} must exist before this script is executed."
     exit 1
   fi
-  # TODO: STI build require the application is a valid 'GIT' repository, we
+  # TODO: S2I build require the application is a valid 'GIT' repository, we
   # should remove this restriction in the future when a file:// is used.
   pushd ${test_dir}/test-app >/dev/null
   git init
   git config user.email "build@localhost" && git config user.name "builder"
   git add -A && git commit -m "Sample commit"
   popd >/dev/null
-  run_sti_build
+  run_s2i_build
 }
 
 run_test_application() {
@@ -90,8 +89,8 @@ wait_for_cid() {
   done
 }
 
-test_usage() {
-  sti usage ${sti_args} ${IMAGE_NAME} &>/dev/null
+run_test_usage() {
+  s2i usage ${s2i_args} ${IMAGE_NAME} &>/dev/null
 }
 
 test_connection() {
@@ -121,11 +120,11 @@ echo "Testing image $IMAGE_NAME"
 prepare
 
 # TODO: The incremental build is currently broken for JBoss
-# run_sti_build
+# run_s2i_build
 # check_result $?
 
 # Verify the 'usage' script is working properly
-test_usage
+run_test_usage
 check_result $?
 
 # Verify that the HTTP connection can be established to test application container
