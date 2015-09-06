@@ -163,6 +163,8 @@ mkdir -p $DEPLOY_DIR
 
 # Copy the source for compilation
 cp -Rf /opt/s2i/destination/src/. $LOCAL_SOURCE_DIR
+chgrp -R 0 $LOCAL_SOURCE_DIR
+chmod -R g+rw $LOCAL_SOURCE_DIR
 
 # If a pom.xml is present, this is a normal build scenario
 # so run maven.
@@ -199,20 +201,28 @@ fi
 
 if [ -d $LOCAL_SOURCE_DIR/target ]; then
   cp $LOCAL_SOURCE_DIR/target/*.war $DEPLOY_DIR >& /dev/null
+  chgrp -R 0 $DEPLOY_DIR
+  chmod -R g+rw $DEPLOY_DIR
 fi
 if [ -d $LOCAL_SOURCE_DIR/deployments ]; then
   cp $LOCAL_SOURCE_DIR/deployments/*.war $DEPLOY_DIR >& /dev/null
+  chgrp -R 0 $DEPLOY_DIR
+  chmod -R g+rw $DEPLOY_DIR
 fi
 
 if [ -d $LOCAL_SOURCE_DIR/cfg ]; then
   echo "Copying config files from project..."
   cp cfg/* /wildfly/standalone/configuration
+  chgrp -R 0 /wildfly/standalone/configuration
+  chmod -R g+rw /wildfly/standalone/configuration
 fi
 
 if [ -d $LOCAL_SOURCE_DIR/modules ]; then
   echo "Copying modules from project..."
   mkdir /wildfly/provided_modules
   cp -r modules/* /wildfly/provided_modules
+  chgrp -R 0 /wildfly/provided_modules
+  chmod -R g+rw /wildfly/provided_modules
 fi
 echo "...done"
 
