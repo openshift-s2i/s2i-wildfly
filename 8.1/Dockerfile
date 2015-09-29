@@ -26,7 +26,6 @@ RUN yum install -y --enablerepo=centosplus \
     ln -sf /usr/local/apache-maven-$MAVEN_VERSION/bin/mvn /usr/local/bin/mvn && \
     mkdir -p /wildfly && \
     (curl -0 http://download.jboss.org/wildfly/$WILDFLY_VERSION_BIN/wildfly-$WILDFLY_VERSION_BIN.tar.gz | tar -zx --strip-components=1 -C /wildfly) && \
-    mkdir -p /opt/app-root/source && \
     mkdir -p /opt/s2i/destination
 
 # Add sti wildfly customizations
@@ -34,13 +33,13 @@ ADD ./contrib/wfmodules/ /wildfly/modules/
 ADD ./contrib/wfbin/standalone.conf /wildfly/bin/standalone.conf
 ADD ./contrib/wfcfg/standalone.xml /wildfly/standalone/configuration/standalone.xml
 
-# Copy the S2I scripts from the specific language image to /usr/local/sti
-COPY ./s2i/bin/ /usr/local/sti
+# Copy the S2I scripts from the specific language image to $STI_SCRIPTS_PATH
+COPY ./s2i/bin/ $STI_SCRIPTS_PATH
 
-# Create wildfly group and user, set file ownership to that user.
-RUN chmod -R go+rw /wildfly && \
-    chmod -R go+rw /opt/s2i/destination
+RUN chown -R 1001:0 /wildfly && \
+    chmod -R ug+rw /wildfly && \
+    chmod -R g+rw /opt/s2i/destination
 
 USER 1001
 
-CMD ["usage"]
+CMD $STI_SCRIPTS_PATH/usage
