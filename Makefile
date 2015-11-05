@@ -1,22 +1,7 @@
-SKIP_SQUASH?=0
-VERSIONS="8.1"
+# Variables are documented in hack/build.sh.
+BASE_IMAGE_NAME = wildfly
+VERSIONS = 8.1 9.0
+OPENSHIFT_NAMESPACES = 8.1 9.0
 
-ifeq ($(TARGET),rhel7)
-	OS := rhel7
-else
-	OS := centos7
-endif
-
-ifeq ($(VERSION), 8.1)
-	VERSION := 8.1
-else
-	VERSION :=
-endif
-
-.PHONY: build
-build:
-	SKIP_SQUASH=$(SKIP_SQUASH) VERSIONS=$(VERSIONS) hack/build.sh $(OS) $(VERSION)
-
-.PHONY: test
-test:
-	SKIP_SQUASH=$(SKIP_SQUASH) VERSIONS=$(VERSIONS) TAG_ON_SUCCESS=$(TAG_ON_SUCCESS) TEST_MODE=true hack/build.sh $(OS) $(VERSION)
+# Include common Makefile code.
+include hack/common.mk

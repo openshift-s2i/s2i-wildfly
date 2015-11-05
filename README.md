@@ -10,6 +10,7 @@ Versions
 ---------------
 WildFly versions currently provided are:
 * WildFly v8.1
+* WildFly v9.0
 
 CentOS versions currently provided are:
 * CentOS7
@@ -24,6 +25,12 @@ This image is available on DockerHub.  To download it, run:
 $ docker pull openshift/wildfly-81-centos7
 ```
 
+or
+
+```
+$ docker pull openshift/wildfly-90-centos7
+```
+
 To build a WildFly image from scratch, run:
 
 ```
@@ -33,8 +40,7 @@ $ make build VERSION=8.1
 ```
 
 ** Note: by omitting the `VERSION` parameter, the build/test action be performed
-on all provided versions of WildFly.  Since we are currently only providing
-version `8.1`, you can omit this parameter.**
+on all provided versions of WildFly.**
 
 Usage
 ---------------------
@@ -65,8 +71,7 @@ which launches tests to check functionality of a simple WildFly application buil
     ```
 
 **Notice: By omitting the `VERSION` parameter, the build/test action will be performed
-on all provided versions of WildFly. Since we are currently providing only version `8.1`
-you can omit this parameter.**
+on all provided versions of WildFly.**
 
 
 Repository organization
