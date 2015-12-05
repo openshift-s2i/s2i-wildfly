@@ -1,5 +1,5 @@
 # This image provides a base for building and running WildFly applications.
-# It builds using maven and runs the resulting artifacts on WildFly 8.1.
+# It builds using maven and runs the resulting artifacts on WildFly 9.0
 
 FROM openshift/base-centos7
 
