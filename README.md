@@ -11,6 +11,7 @@ Versions
 WildFly versions currently provided are:
 * WildFly v8.1
 * WildFly v9.0
+* WildFly v10.0 (10.0.0CR4)
 
 CentOS versions currently provided are:
 * CentOS7
