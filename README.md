@@ -32,6 +32,12 @@ or
 $ docker pull openshift/wildfly-90-centos7
 ```
 
+or
+
+```
+$ docker pull openshift/wildfly-100-centos7
+```
+
 To build a WildFly image from scratch, run:
 
 ```
