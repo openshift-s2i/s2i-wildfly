@@ -1,5 +1,5 @@
 # This image provides a base for building and running WildFly applications.
-# It builds using maven and runs the resulting artifacts on WildFly 10.0.0 CR4
+# It builds using maven and runs the resulting artifacts on WildFly 10.0.0 CR5
 
 FROM openshift/base-centos7
 
@@ -7,12 +7,12 @@ MAINTAINER Ben Parees <bparees@redhat.com>
 
 EXPOSE 8080
 
-ENV WILDFLY_VERSION 10.0.0.CR4
-ENV WILDFLY_VERSION_BIN 10.0.0.CR4
+ENV WILDFLY_VERSION 10.0.0.CR5
+ENV WILDFLY_VERSION_BIN 10.0.0.CR5
 ENV MAVEN_VERSION 3.3.3
 
-LABEL io.k8s.description="Platform for building and running JEE applications on WildFly 10.0.0.CR4" \
-      io.k8s.display-name="WildFly 10.0.0.CR4" \
+LABEL io.k8s.description="Platform for building and running JEE applications on WildFly 10.0.0.CR5" \
+      io.k8s.display-name="WildFly 10.0.0.CR5" \
       io.openshift.expose-services="8080:http" \
       io.openshift.tags="builder,wildfly,wildfly10" \
       io.openshift.s2i.destination="/opt/s2i/destination"
