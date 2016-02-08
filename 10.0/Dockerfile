@@ -7,12 +7,11 @@ MAINTAINER Ben Parees <bparees@redhat.com>
 
 EXPOSE 8080
 
-ENV WILDFLY_VERSION 10.0.0.CR5
-ENV WILDFLY_VERSION_BIN 10.0.0.CR5
+ENV WILDFLY_VERSION 10.0.0.Final
 ENV MAVEN_VERSION 3.3.3
 
 LABEL io.k8s.description="Platform for building and running JEE applications on WildFly 10.0.0.CR5" \
-      io.k8s.display-name="WildFly 10.0.0.CR5" \
+      io.k8s.display-name="WildFly 10.0.0.Final" \
       io.openshift.expose-services="8080:http" \
       io.openshift.tags="builder,wildfly,wildfly10" \
       io.openshift.s2i.destination="/opt/s2i/destination"
@@ -25,7 +24,7 @@ RUN yum install -y --enablerepo=centosplus \
     tar -zx -C /usr/local) && \
     ln -sf /usr/local/apache-maven-$MAVEN_VERSION/bin/mvn /usr/local/bin/mvn && \
     mkdir -p /wildfly && \
-    (curl -0 http://download.jboss.org/wildfly/$WILDFLY_VERSION_BIN/wildfly-$WILDFLY_VERSION_BIN.tar.gz | tar -zx --strip-components=1 -C /wildfly) && \
+    (curl -0 http://download.jboss.org/wildfly/$WILDFLY_VERSION/wildfly-$WILDFLY_VERSION.tar.gz | tar -zx --strip-components=1 -C /wildfly) && \
     mkdir -p /opt/s2i/destination
 
 # Add sti wildfly customizations
