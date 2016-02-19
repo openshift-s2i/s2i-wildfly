@@ -18,8 +18,9 @@ LABEL io.k8s.description="Platform for building and running JEE applications on 
       io.openshift.s2i.destination="/opt/s2i/destination"
 
 # Install Maven, Wildfly 8
-RUN yum install -y --enablerepo=centosplus \
-    tar unzip bc which lsof java-1.8.0-openjdk java-1.8.0-openjdk-devel && \
+RUN INSTALL_PKGS="tar unzip bc which lsof java-1.8.0-openjdk java-1.8.0-openjdk-devel" && \
+    yum install -y --enablerepo=centosplus $INSTALL_PKGS && \
+    rpm -V $INSTALL_PKGS && \
     yum clean all -y && \
     (curl -0 http://www.us.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz | \
     tar -zx -C /usr/local) && \
@@ -36,7 +37,7 @@ ADD ./contrib/wfcfg/standalone.xml /wildfly/standalone/configuration/standalone.
 # Copy the S2I scripts from the specific language image to $STI_SCRIPTS_PATH
 COPY ./s2i/bin/ $STI_SCRIPTS_PATH
 
-RUN chown -R 1001:0 /wildfly && \
+RUN chown -R 1001:0 /wildfly && chown -R 1001:0 $HOME/.pki && \
     chmod -R ug+rw /wildfly && \
     chmod -R g+rw /opt/s2i/destination
 
