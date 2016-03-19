@@ -2,7 +2,7 @@
 
 run_wildfly() {
   if [ "$DEV_MODE" == true ]; then
-    exec /wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 -Dhot.deploy.enabled=true
+    exec /wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 -Dhot.deploy.enabled=true -DENABLE_JPDA=true
   else
     exec /wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0
   fi
