@@ -2,6 +2,7 @@ Wildfly - CentOS Docker image
 ========================================
 
 [![Build Status](https://travis-ci.org/openshift/sti-wildfly.svg?branch=master)](https://travis-ci.org/openshift/sti-wildfly)
+[![Build Status](https://ci.openshift.redhat.com/jenkins/buildStatus/icon?job=sti-wildfly)](https://ci.openshift.redhat.com/jenkins/job/sti-wildfly/)
 
 This repository contains the source for building various versions of
 the WildFly application as a reproducible Docker image using
