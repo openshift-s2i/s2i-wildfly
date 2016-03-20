@@ -23,7 +23,7 @@ test -z "$BASE_IMAGE_NAME" && {
   BASE_IMAGE_NAME="${BASE_DIR_NAME#sti-}"
 }
 
-NAMESPACE="openshift/"
+NAMESPACE="thesteve0/"
 
 # Cleanup the temporary Dockerfile created by docker build with version
 trap "rm -f ${DOCKERFILE_PATH}.version" SIGINT SIGQUIT EXIT
@@ -68,7 +68,7 @@ for dir in ${dirs}; do
       fi
   esac
 
-  IMAGE_NAME="${NAMESPACE}${BASE_IMAGE_NAME}-${dir//./}-${OS}"
+  IMAGE_NAME="${NAMESPACE}sti-${BASE_IMAGE_NAME}-${dir//./}-${OS}"
 
   if [[ -v TEST_MODE ]]; then
     IMAGE_NAME+="-candidate"
