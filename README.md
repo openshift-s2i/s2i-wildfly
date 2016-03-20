@@ -48,6 +48,8 @@ $ cd sti-wildfly
 $ make build VERSION=8.1
 ```
 
+** Warning these instructions assume your machine running Docker has the make utilities. This is not the case in Docker Quickstart with MsysGit and the default VM. 
+
 ** Note: by omitting the `VERSION` parameter, the build/test action be performed
 on all provided versions of WildFly.**
 
