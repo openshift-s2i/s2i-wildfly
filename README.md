@@ -1,7 +1,7 @@
 Wildfly - CentOS Docker image
 ========================================
 
-[![Build Status](https://travis-ci.org/openshift/sti-wildfly.svg?branch=master)](https://travis-ci.org/openshift/sti-wildfly)
+[![Build Status](https://travis-ci.org/openshift-s2i/s2i-wildfly.svg?branch=master)](https://travis-ci.org/openshift-s2i/s2i-wildfly)
 
 This repository contains the source for building various versions of
 the WildFly application as a reproducible Docker image using
@@ -43,8 +43,8 @@ $ docker pull openshift/wildfly-100-centos7
 To build a WildFly image from scratch, run:
 
 ```
-$ git clone https://github.com/openshift/sti-wildfly.git
-$ cd sti-wildfly
+$ git clone https://github.com/openshift-s2i/s2i-wildfly.git
+$ cd s2i-wildfly
 $ make build VERSION=8.1
 ```
 
@@ -75,7 +75,7 @@ which launches tests to check functionality of a simple WildFly application buil
 *  **CentOS based image**
 
     ```
-    $ cd sti-wildfly
+    $ cd s2i-wildfly
     $ make test VERSION=8.1
     ```
 
@@ -206,4 +206,4 @@ file inside your source code repository.
 Copyright
 --------------------
 
-Released under the Apache License 2.0. See the [LICENSE](https://github.com/openshift/sti-wildfly/blob/master/LICENSE) file.
+Released under the Apache License 2.0. See the [LICENSE](LICENSE) file.
