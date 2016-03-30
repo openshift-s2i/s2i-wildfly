@@ -1,4 +1,4 @@
-sudo: required
+sudo: false
 
 language: go
 
@@ -14,7 +14,8 @@ before_install:
   - git clone https://github.com/openshift/source-to-image source-to-image
   - cd source-to-image
   - hack/build-go.sh
-  - sudo mv _output/local/bin/linux/amd64/* /usr/local/bin
+  - mkdir -p $HOME/.bin && mv _output/local/bin/linux/amd64/* $HOME/.bin
+  - export PATH=$PATH:$HOME/.bin
   - popd
 
 script:
