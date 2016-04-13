@@ -8,9 +8,9 @@ PID_FILE=/tmp/wildfly.pid
 # in which the target image name is an existing docker image which contains
 # dependencies from a prior build execution.
 function restore_saved_artifacts() {
-  if [ "$(ls /opt/s2i/destination/artifacts/ 2>/dev/null)" ]; then
+  if [ "$(ls -A /opt/s2i/destination/artifacts/ 2>/dev/null)" ]; then
     echo -n "Restoring saved artifacts from prior build..."
-    mv /opt/s2i/destination/artifacts/* $HOME/.
+    mv /opt/s2i/destination/artifacts/* /opt/s2i/destination/artifacts/.[!.]* $HOME/.
   fi
 }
 
