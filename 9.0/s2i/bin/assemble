@@ -197,6 +197,9 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
   popd &> /dev/null
 else
   echo "Copying binaries in source directory into $DEPLOY_DIR for later deployment..."
+  cp $LOCAL_SOURCE_DIR/*.war $DEPLOY_DIR >& /dev/null
+  chgrp -R 0 $DEPLOY_DIR
+  chmod -R g+rw $DEPLOY_DIR  
 fi
 
 if [ -d $LOCAL_SOURCE_DIR/target ]; then
