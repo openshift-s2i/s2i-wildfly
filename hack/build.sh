@@ -16,6 +16,11 @@
 OS=${1-$OS}
 VERSION=${2-$VERSION}
 
+# we don't build/test a rhel version of wildfly.
+if [ ${OS} != "centos7" ]; then
+  exit 0
+fi
+
 DOCKERFILE_PATH=""
 
 test -z "$BASE_IMAGE_NAME" && {
