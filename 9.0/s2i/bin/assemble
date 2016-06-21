@@ -150,6 +150,62 @@ function ismgmtup() {
   return 1
 }
 
+# insert settings for HTTP proxy into settings.xml if supplied
+function configure_proxy() {
+  if [ -n "$HTTP_PROXY_HOST" -a -n "$HTTP_PROXY_PORT" ]; then
+    xml="<proxy>\
+         <id>genproxy</id>\
+         <active>true</active>\
+         <protocol>http</protocol>\
+         <host>$HTTP_PROXY_HOST</host>\
+         <port>$HTTP_PROXY_PORT</port>"
+    if [ -n "$HTTP_PROXY_USERNAME" -a -n "$HTTP_PROXY_PASSWORD" ]; then
+      xml="$xml\
+         <username>$HTTP_PROXY_USERNAME</username>\
+         <password>$HTTP_PROXY_PASSWORD</password>"
+    fi
+    if [ -n "$HTTP_PROXY_NONPROXYHOSTS" ]; then
+      xml="$xml\
+         <nonProxyHosts>$HTTP_PROXY_NONPROXYHOSTS</nonProxyHosts>"
+    fi
+  xml="$xml\
+       </proxy>"
+    sed -i "s|<!-- ### configured http proxy ### -->|$xml|" $HOME/.m2/settings.xml
+  fi
+}
+
+# insert settings for mirrors/repository managers into settings.xml if supplied
+function configure_mirrors() {
+  if [ -n "$MAVEN_MIRROR_URL" ]; then
+    xml="    <mirror>\
+      <id>mirror.default</id>\
+      <url>$MAVEN_MIRROR_URL</url>\
+      <mirrorOf>external:*</mirrorOf>\
+    </mirror>"
+    sed -i "s|<!-- ### configured mirrors ### -->|$xml|" $HOME/.m2/settings.xml
+  fi
+}
+
+function copy_artifacts() {
+  dir=$1
+  types=
+  shift
+  while [ $# -gt 0 ]; do
+    types="$types;$1"
+    shift
+  done
+
+  for d in $(echo $dir | tr "," "\n")
+  do
+    shift
+    for t in $(echo $types | tr ";" "\n")
+    do
+      echo "Copying all $t artifacts from $LOCAL_SOURCE_DIR/$d directory into $DEPLOY_DIR for later deployment..."
+      cp -v $LOCAL_SOURCE_DIR/$d/*.$t $DEPLOY_DIR 2> /dev/null
+    done
+  done
+}
+
 ADMIN=admin
 PASSWORD=passw0rd_
 
@@ -166,6 +222,20 @@ cp -Rf /opt/s2i/destination/src/. $LOCAL_SOURCE_DIR
 chgrp -R 0 $LOCAL_SOURCE_DIR
 chmod -R g+rw $LOCAL_SOURCE_DIR
 
+if [ -d $LOCAL_SOURCE_DIR/configuration ]; then
+  echo "Copying config files from project..."
+
+  if [ -f $LOCAL_SOURCE_DIR/configuration/settings.xml ]; then
+    mkdir -p $HOME/.m2
+    mv $LOCAL_SOURCE_DIR/configuration/settings.xml $HOME/.m2
+  fi
+
+  cp -v $LOCAL_SOURCE_DIR/configuration/* $JBOSS_HOME/standalone/configuration/
+fi
+
+configure_proxy
+configure_mirrors
+
 # If a pom.xml is present, this is a normal build scenario
 # so run maven.
 if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
@@ -176,8 +246,15 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
   pushd $LOCAL_SOURCE_DIR &> /dev/null
   JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
 
+  # If MAVEN_SETTINGS specified, must be relative to application root
+  if [ -z "$MAVEN_SETTINGS" ]; then
+    export MAVEN_ARGS="$MAVEN_ARGS -s $HOME/.m2/settings.xml"
+  else
+    export MAVEN_ARGS="$MAVEN_ARGS -s $LOCAL_SOURCE_DIR/$MAVEN_SETTINGS"
+  fi
+
   if [ -z "$MAVEN_ARGS" ]; then
-    export MAVEN_ARGS="package -Popenshift -DskipTests -B"
+    export MAVEN_ARGS="package -Dorg.wildfly.maven.repo -DskipTests -B"
   fi
   if [ -n "$MAVEN_ARGS_APPEND" ]; then
     export MAVEN_ARGS="$MAVEN_ARGS $MAVEN_ARGS_APPEND"
@@ -197,20 +274,14 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
   popd &> /dev/null
 else
   echo "Copying binaries in source directory into $DEPLOY_DIR for later deployment..."
-  cp $LOCAL_SOURCE_DIR/*.war $DEPLOY_DIR >& /dev/null
-  chgrp -R 0 $DEPLOY_DIR
-  chmod -R g+rw $DEPLOY_DIR
+  copy_artifacts "$LOCAL_SOURCE_DIR" war ear rar jar
 fi
 
 if [ -d $LOCAL_SOURCE_DIR/target ]; then
-  cp $LOCAL_SOURCE_DIR/target/*.war $DEPLOY_DIR >& /dev/null
-  chgrp -R 0 $DEPLOY_DIR
-  chmod -R g+rw $DEPLOY_DIR
+  copy_artifacts "target" war ear rar jar
 fi
 if [ -d $LOCAL_SOURCE_DIR/deployments ]; then
-  cp $LOCAL_SOURCE_DIR/deployments/*.war $DEPLOY_DIR >& /dev/null
-  chgrp -R 0 $DEPLOY_DIR
-  chmod -R g+rw $DEPLOY_DIR
+  copy_artifacts "deployments" war ear rar jar
 fi
 
 if [ -d $LOCAL_SOURCE_DIR/cfg ]; then
