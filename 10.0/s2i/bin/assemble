@@ -202,8 +202,8 @@ function copy_artifacts() {
     do
       echo "Copying all $t artifacts from $LOCAL_SOURCE_DIR/$d directory into $DEPLOY_DIR for later deployment..."
       cp -v $LOCAL_SOURCE_DIR/$d/*.$t $DEPLOY_DIR 2> /dev/null
-      chgrp -R 0 $LOCAL_SOURCE_DIR/$d/*.$t
-      chmod -R g+rw $LOCAL_SOURCE_DIR/$d/*.$t
+      chgrp -fR 0 $LOCAL_SOURCE_DIR/$d/*.$t
+      chmod -fR g+rw $LOCAL_SOURCE_DIR/$d/*.$t
     done
   done
 }
