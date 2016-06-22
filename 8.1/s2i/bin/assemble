@@ -202,6 +202,8 @@ function copy_artifacts() {
     do
       echo "Copying all $t artifacts from $LOCAL_SOURCE_DIR/$d directory into $DEPLOY_DIR for later deployment..."
       cp -v $LOCAL_SOURCE_DIR/$d/*.$t $DEPLOY_DIR 2> /dev/null
+      chgrp -R 0 $LOCAL_SOURCE_DIR/$d/*.$t
+      chmod -R g+rw $LOCAL_SOURCE_DIR/$d/*.$t
     done
   done
 }
@@ -247,17 +249,25 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
   JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
 
   if [ -z "$MAVEN_ARGS" ]; then
-    export MAVEN_ARGS="package -Dorg.wildfly.maven.repo -DskipTests -B"
+    export MAVEN_ARGS="package -Popenshift -DskipTests -B"
   fi
 
-  # If MAVEN_SETTINGS specified, must be relative to application root
+  # If MAVEN_SETTINGS specified will always add to MAVEN_ARGS
+  # Can be relative to application root
+  # Can be global to image
   if [ -z "$MAVEN_SETTINGS" ]; then
     export MAVEN_ARGS="$MAVEN_ARGS -s $HOME/.m2/settings.xml"
   else
-    [ ! -e "$LOCAL_SOURCE_DIR/$MAVEN_SETTINGS" ] && echo "Specified settings file does not exist. [$MAVEN_SETTINGS]" && exit 1
-    export MAVEN_ARGS="$MAVEN_ARGS -s $LOCAL_SOURCE_DIR/$MAVEN_SETTINGS"
+    if [[ "$MAVEN_SETTINGS" = /* ]]; then
+       [ ! -e "$MAVEN_SETTINGS" ] && echo "Specified settings file does not exist in the image. [$MAVEN_SETTINGS]" && exit 1
+       export MAVEN_ARGS="$MAVEN_ARGS -s $MAVEN_SETTINGS"
+    else
+       [ ! -e "$LOCAL_SOURCE_DIR/$MAVEN_SETTINGS" ] && echo "Specified settings file does not exist in your source code. [$MAVEN_SETTINGS]" && exit 1
+       export MAVEN_ARGS="$MAVEN_ARGS -s $LOCAL_SOURCE_DIR/$MAVEN_SETTINGS"
+    fi
   fi
 
+  # Append user provided args
   if [ -n "$MAVEN_ARGS_APPEND" ]; then
     export MAVEN_ARGS="$MAVEN_ARGS $MAVEN_ARGS_APPEND"
   fi
@@ -276,7 +286,7 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
   popd &> /dev/null
 else
   echo "Copying binaries in source directory into $DEPLOY_DIR for later deployment..."
-  copy_artifacts "$LOCAL_SOURCE_DIR" war ear rar jar
+  copy_artifacts "." war ear rar jar
 fi
 
 if [ -d $LOCAL_SOURCE_DIR/target ]; then
