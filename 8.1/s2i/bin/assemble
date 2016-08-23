@@ -200,10 +200,11 @@ function copy_artifacts() {
     shift
     for t in $(echo $types | tr ";" "\n")
     do
+      # TODO: Just copy and log if there is at least one file to copy
       echo "Copying all $t artifacts from $LOCAL_SOURCE_DIR/$d directory into $DEPLOY_DIR for later deployment..."
       cp -v $LOCAL_SOURCE_DIR/$d/*.$t $DEPLOY_DIR 2> /dev/null
-      chgrp -R 0 $LOCAL_SOURCE_DIR/$d/*.$t
-      chmod -R g+rw $LOCAL_SOURCE_DIR/$d/*.$t
+      chgrp -fR 0 $LOCAL_SOURCE_DIR/$d/*.$t
+      chmod -fR g+rw $LOCAL_SOURCE_DIR/$d/*.$t
     done
   done
 }
@@ -218,6 +219,10 @@ mkdir -p $LOCAL_SOURCE_DIR
 # Resulting WAR files will be deployed to /wildfly/standalone/deployments
 DEPLOY_DIR=/wildfly/standalone/deployments
 mkdir -p $DEPLOY_DIR
+
+# the subdirectory within LOCAL_SOURCE_DIR from where we should copy build
+# artifacts (*.war, *.jar)
+ARTIFACT_DIR=${ARTIFACT_DIR:-target}
 
 # Copy the source for compilation
 cp -Rf /opt/s2i/destination/src/. $LOCAL_SOURCE_DIR
@@ -267,7 +272,7 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
     fi
   fi
 
-  # Append user provided args
+  # Append user provided args
   if [ -n "$MAVEN_ARGS_APPEND" ]; then
     export MAVEN_ARGS="$MAVEN_ARGS $MAVEN_ARGS_APPEND"
   fi
@@ -289,8 +294,8 @@ else
   copy_artifacts "." war ear rar jar
 fi
 
-if [ -d $LOCAL_SOURCE_DIR/target ]; then
-  copy_artifacts "target" war ear rar jar
+if [ -d $LOCAL_SOURCE_DIR/$ARTIFACT_DIR ]; then
+  copy_artifacts "$ARTIFACT_DIR" war ear rar jar
 fi
 if [ -d $LOCAL_SOURCE_DIR/deployments ]; then
   copy_artifacts "deployments" war ear rar jar
