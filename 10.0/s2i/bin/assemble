@@ -215,6 +215,10 @@ PASSWORD=passw0rd_
 LOCAL_SOURCE_DIR=${HOME}
 mkdir -p $LOCAL_SOURCE_DIR
 
+# the subdirectory within LOCAL_SOURCE_DIR from where we should copy build
+# artifacts (*.war, *.jar)
+ARTIFACT_DIR=${ARTIFACT_DIR:-target}
+
 # Resulting WAR files will be deployed to /wildfly/standalone/deployments
 DEPLOY_DIR=/wildfly/standalone/deployments
 mkdir -p $DEPLOY_DIR
@@ -289,8 +293,10 @@ else
   copy_artifacts "." war ear rar jar
 fi
 
-if [ -d $LOCAL_SOURCE_DIR/target ]; then
-  copy_artifacts "target" war ear rar jar
+# Copy built artifacts (if any!) from the target/ directory
+# (or $ARTIFACT_DIR if specified)
+if [ -d $LOCAL_SOURCE_DIR/$ARTIFACT_DIR ]; then
+  copy_artifacts "$ARTIFACT_DIR" war ear rar jar
 fi
 if [ -d $LOCAL_SOURCE_DIR/deployments ]; then
   copy_artifacts "deployments" war ear rar jar
