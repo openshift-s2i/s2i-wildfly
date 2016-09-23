@@ -236,7 +236,7 @@ if [ -d $LOCAL_SOURCE_DIR/configuration ]; then
     mv $LOCAL_SOURCE_DIR/configuration/settings.xml $HOME/.m2
   fi
 
-  cp -v $LOCAL_SOURCE_DIR/configuration/* $JBOSS_HOME/standalone/configuration/
+  cp -v $LOCAL_SOURCE_DIR/configuration/* /widlfly/standalone/configuration/
 fi
 
 configure_proxy
