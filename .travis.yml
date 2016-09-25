@@ -1,7 +1,6 @@
 sudo: required
 
 language: go
-
 go:
   - 1.6
 
@@ -18,4 +17,4 @@ before_install:
   - popd
 
 script:
-  - make test
+  - SKIP_SQUASH=1 make test
