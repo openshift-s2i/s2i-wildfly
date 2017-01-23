@@ -186,7 +186,7 @@ function configure_mirrors() {
   fi
 }
 
-function copy_artifacts() {
+function move_artifacts() {
   dir=$1
   types=
   shift
@@ -200,14 +200,14 @@ function copy_artifacts() {
     shift
     for t in $(echo $types | tr ";" "\n")
     do
-      echo "Copying all $t artifacts from $LOCAL_SOURCE_DIR/$d directory into $DEPLOY_DIR for later deployment..."
-      cp -v $LOCAL_SOURCE_DIR/$d/*.$t $DEPLOY_DIR 2> /dev/null
+      echo "Moving all $t artifacts from $LOCAL_SOURCE_DIR/$d directory into $DEPLOY_DIR for later deployment..."
+      mv -v $LOCAL_SOURCE_DIR/$d/*.$t $DEPLOY_DIR 2> /dev/null
       chgrp -fR 0 $LOCAL_SOURCE_DIR/$d/*.$t
       chmod -fR g+rw $LOCAL_SOURCE_DIR/$d/*.$t
     done
   done
-}
 
+}
 ADMIN=admin
 PASSWORD=passw0rd_
 
@@ -286,21 +286,21 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
     exit $ERR
   fi
 
-  echo "Copying built war files into $DEPLOY_DIR for later deployment..."
+  echo "Moving built war files into $DEPLOY_DIR for later deployment..."
   popd &> /dev/null
 else
-  echo "Copying binaries in source directory into $DEPLOY_DIR for later deployment..."
-  copy_artifacts "." war ear rar jar
+  echo "Moving binaries in source directory into $DEPLOY_DIR for later deployment..."
+  move_artifacts "." war ear rar jar
 fi
 
-# Copy built artifacts (if any!) from the target/ directory
+# Move built artifacts (if any!) from the target/ directory
 # (or $ARTIFACT_DIR if specified)
 if [ -d $LOCAL_SOURCE_DIR/$ARTIFACT_DIR ]; then
-  copy_artifacts "$ARTIFACT_DIR" war ear rar jar
+  move_artifacts "$ARTIFACT_DIR" war ear rar jar
 fi
 
 if [ -d $LOCAL_SOURCE_DIR/deployments ]; then
-  copy_artifacts "deployments" war ear rar jar
+  move_artifacts "deployments" war ear rar jar
 fi
 
 if [ -d $LOCAL_SOURCE_DIR/cfg ]; then
