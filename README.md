@@ -14,6 +14,7 @@ WildFly versions currently provided are:
 * WildFly v8.1
 * WildFly v9.0
 * WildFly v10.0 (10.0.0 Final)
+* WildFly v10.1
 
 CentOS versions currently provided are:
 * CentOS7
@@ -38,6 +39,12 @@ or
 
 ```
 $ docker pull openshift/wildfly-100-centos7
+```
+
+or
+
+```
+$ docker pull openshift/wildfly-101-centos7
 ```
 
 To build a WildFly image from scratch, run:
@@ -97,18 +104,18 @@ Repository organization
 
         *   **assemble**
 
-          Is used to restore the build artifacts from the previous built (in case of
+          Is used to restore the build artifacts from the previous build (in case of
           'incremental build'), to install the sources into location from where the
           application will be run and prepare the application for deployment (eg.
           installing maven dependencies, building java code, etc..).
 
-          In addition, the assemble script will copy artifacts provided in the
+          In addition, the assemble script will distribute artifacts provided in the
           application source project into the Wildfly installation:
 
           Wildfly configuration files from the <application source>/cfg are copied
           into the wildfly configuration directory.
 
-          Pre-built war files from the <application source>/deployments are copied
+          Pre-built war files from the <application source>/deployments are moved
           into the wildfly deployment directory.
 
           Wildfly modules from the <application source>/provided_modules are copied
@@ -161,6 +168,11 @@ Repository organization
 
     Folder containing scripts which are responsible for the build and test actions performed by the `Makefile`.
 
+Hot Deploy
+------------------------
+
+Hot deploy is enabled by default for all WildFly versions.  
+To deploy a new version of your web application without restarting, you will need to either rsync or scp your war/ear/rar/jar file to the /wildfly/standalone/deployments directory within your pod.
 
 Image name structure
 ------------------------
