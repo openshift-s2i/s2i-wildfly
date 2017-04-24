@@ -275,6 +275,33 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
   if [ -n "$MAVEN_ARGS_APPEND" ]; then
     export MAVEN_ARGS="$MAVEN_ARGS $MAVEN_ARGS_APPEND"
   fi
+
+  CONTAINER_HEAP_PERCENT=${CONTAINER_HEAP_PERCENT:-0.50}
+  CONTAINER_MEMORY_IN_BYTES=`cat /sys/fs/cgroup/memory/memory.limit_in_bytes`
+
+  DEFAULT_MEMORY_CEILING=$((2**40-1))
+  if [ "${CONTAINER_MEMORY_IN_BYTES}" -lt "${DEFAULT_MEMORY_CEILING}" ]; then
+    CONTAINER_MEMORY_IN_MB=$((${CONTAINER_MEMORY_IN_BYTES}/1024**2))
+    CONTAINER_HEAP_MAX=$(echo "${CONTAINER_MEMORY_IN_MB} ${CONTAINER_HEAP_PERCENT}" | awk '{ printf "%d", $1 * $2 }')
+    JAVA_HEAP_MAX=-Xmx${CONTAINER_HEAP_MAX}
+  fi
+
+  if [ -z $JAVA_GC_OPTS ]; then
+    # note - MaxPermSize no longer valid with v8 of the jdk ... used to have -XX:MaxPermSize=100m
+    JAVA_GC_OPTS="-XX:+UseParallelGC -XX:MinHeapFreeRatio=20 -XX:MaxHeapFreeRatio=40 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -XX:MaxMetaspaceSize=100m"
+  fi
+  if [ ! -z "${CONTAINER_CORE_LIMIT}" ]; then
+    JAVA_CORE_LIMIT="-XX:ParallelGCThreads=${CONTAINER_CORE_LIMIT} -Djava.util.concurrent.ForkJoinPool.common.parallelism=${CONTAINER_CORE_LIMT} -XX:CICompilerCount=2"
+  fi
+  if [ ! -z "${USE_JAVA_DIAGNOSTICS}" ]; then
+    JAVA_DIAGNOSTICS="-XX:NativeMemoryTracking=summary -XX:+PrintGC -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+UnlockDiagnosticVMOptions"
+  fi
+
+  # When arguments such as max heap size are repeated, the JVM respects the last value provided,
+  # so by setting the user provided MAVEN_OPTS value last, we allow the user to override any 
+  # of the values we calculated above.
+  MAVEN_OPTS=$JAVA_GC_OPTS $JAVA_HEAP_MAX $JAVA_CORE_LIMIT $JAVA_DIAGNOSTICS $MAVEN_OPTS
+
   echo "Found pom.xml... attempting to build with 'mvn ${MAVEN_ARGS}'"
 
   mvn --version
