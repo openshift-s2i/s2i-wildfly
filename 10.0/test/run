@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 #
 # The 'run' performs a simple test that verifies that S2I image.
 # The main focus here is to excersise the S2I scripts.
@@ -45,13 +45,13 @@ prepare() {
   pushd ${test_dir}/test-app >/dev/null
   git init
   git config user.email "build@localhost" && git config user.name "builder"
-  git add -A && git commit -m "Sample commit"
+  git add -A && git commit -m "Sample commit" || true
   popd >/dev/null
   run_s2i_build
 }
 
 run_test_application() {
-  docker run --rm --cidfile=${cid_file} ${IMAGE_NAME}-testapp >& /dev/null
+  docker run --rm $1 --cidfile=${cid_file} ${IMAGE_NAME}-testapp >& /dev/null
 }
 
 cleanup() {
@@ -100,8 +100,10 @@ test_connection() {
   local result=1
   while [ $attempt -le $max_attempts ]; do
     echo "Sending GET request to http://$(container_ip):${test_port}/"
+    set +e
     response_code=$(curl -s -w %{http_code} -o /dev/null http://$(container_ip):${test_port}/)
     status=$?
+    set -e
     if [ $status -eq 0 ]; then
       if [ $response_code -eq 200 ]; then
         result=0
@@ -112,6 +114,10 @@ test_connection() {
     sleep $sleep_time
   done
   return $result
+}
+
+test_config() {
+  docker exec $(cat $cid_file) cat /wildfly/standalone/configuration/standalone.xml | grep auto-deploy-exploded=\"true\"
 }
 
 echo "Testing image $IMAGE_NAME"
@@ -128,13 +134,16 @@ run_test_usage
 check_result $?
 
 # Verify that the HTTP connection can be established to test application container
-run_test_application &
+run_test_application "-e AUTO_DEPLOY_EXPLODED=true" &
 
 # Wait for the container to write it's CID file
 #
 wait_for_cid
 
 test_connection
+check_result $?
+
+test_config
 check_result $?
 
 cleanup 0

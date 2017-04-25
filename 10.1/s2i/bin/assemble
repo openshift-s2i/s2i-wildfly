@@ -206,8 +206,8 @@ function move_artifacts() {
       mv -v $LOCAL_SOURCE_DIR/$d/*.$t $DEPLOY_DIR 2> /dev/null
     done
   done
-
 }
+
 ADMIN=admin
 PASSWORD=passw0rd_
 
