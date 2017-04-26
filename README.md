@@ -11,8 +11,8 @@ The resulting image can be run using [Docker](http://docker.io).
 Versions
 ---------------
 WildFly versions currently provided are:
-* WildFly v8.1
-* WildFly v9.0
+* WildFly v8.1 (deprecated)
+* WildFly v9.0 (deprecated)
 * WildFly v10.0 (10.0.0 Final)
 * WildFly v10.1
 
@@ -26,13 +26,8 @@ Installation
 This image is available on DockerHub.  To download it, run:
 
 ```
-$ docker pull openshift/wildfly-81-centos7
-```
+$ docker pull openshift/wildfly-101-centos7
 
-or
-
-```
-$ docker pull openshift/wildfly-90-centos7
 ```
 
 or
@@ -41,18 +36,12 @@ or
 $ docker pull openshift/wildfly-100-centos7
 ```
 
-or
-
-```
-$ docker pull openshift/wildfly-101-centos7
-```
-
 To build a WildFly image from scratch, run:
 
 ```
 $ git clone https://github.com/openshift-s2i/s2i-wildfly.git
 $ cd s2i-wildfly
-$ make build VERSION=8.1
+$ make build VERSION=10.1
 ```
 
 ** Note: by omitting the `VERSION` parameter, the build/test action be performed
@@ -65,7 +54,7 @@ using standalone [S2I](https://github.com/openshift/source-to-image) and then ru
 resulting image with [Docker](http://docker.io) execute:
 
 ```
-$ s2i build git://github.com/bparees/openshift-jee-sample openshift/wildfly-100-centos7 wildflytest
+$ s2i build git://github.com/bparees/openshift-jee-sample openshift/wildfly-101-centos7 wildflytest
 $ docker run -p 8080:8080 wildflytest
 ```
 
@@ -83,7 +72,7 @@ which launches tests to check functionality of a simple WildFly application buil
 
     ```
     $ cd s2i-wildfly
-    $ make test VERSION=8.1
+    $ make test VERSION=10.1
     ```
 
 **Notice: By omitting the `VERSION` parameter, the build/test action will be performed
@@ -179,22 +168,46 @@ Image name structure
 ##### Structure: openshift/1-2-3
 
 1. Platform name (lowercase) - wildfly
-2. Platform version(without dots) - 81
+2. Platform version(without dots) - 101
 3. Base builder image - centos7
 
-Example: `openshift/wildfly-81-centos7`
+Example: `openshift/wildfly-101-centos7`
 Environment variables
 ---------------------
-To set environment variables, you can place them as a key value pair into a `.sti/environment`
+To set environment variables, you can place them as a key value pair into a `.s2i/environment`
 file inside your source code repository.
 
 * MAVEN_ARGS
 
-    Overrides the default arguments passed to maven durin the build process
+    Overrides the default arguments passed to maven during the build process
 
 * MAVEN_ARGS_APPEND
 
     This value will be appended to either the default maven arguments, or the value of MAVEN_ARGS if MAVEN_ARGS is set.
+
+* MAVEN_OPTS
+
+    Contains JVM parameters to maven.  Will be appended to JVM arguments that are calculated by the image 
+    itself (e.g. heap size), so values provided here will take precedence.
+
+* JAVA_GC_OPTS
+
+    When set to a non-null value, this value will be passed to the JVM instead of the default garbage collection tuning 
+    values defined by the image.
+
+* CONTAINER_CORE_LIMIT
+
+    When set to a non-null value, the number of parallel garbage collection threads will be set to this value.
+
+* USE_JAVA_DIAGNOSTICS
+
+    When set to a non-null value, various JVM related diagnostics will be turned on such as verbose garbage 
+    collection tracing.
+
+* AUTO_DEPLOY_EXPLODED
+
+    When set to `true`, Wildfly will automatically deploy exploded war content.  When unset or set to `false`, 
+    a `.dodeploy` file must be touched to trigger deployment of exploded war content.
 
 * MYSQL_DATABASE
 
