@@ -137,7 +137,7 @@
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:datasources:2.0">
             <datasources>
-                <datasource jndi-name="java:jboss/datasources/${env.OPENSHIFT_DATASOURCE}" pool-name="${env.OPENSHIFT_DATASOURCE}" enabled="true" use-java-context="true">
+                <datasource jndi-name="java:jboss/datasources/${env.EXAMPLE_DATASOURCE}" pool-name="${env.EXAMPLE_DATASOURCE}" enabled="true" use-java-context="true">
                     <connection-url>jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE</connection-url>
                     <driver>h2</driver>
                     <security>
