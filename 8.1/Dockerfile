@@ -15,7 +15,8 @@ LABEL io.k8s.description="Platform for building and running JEE applications on 
       io.k8s.display-name="WildFly 8.1" \
       io.openshift.expose-services="8080:http" \
       io.openshift.tags="builder,wildfly,wildfly81" \
-      io.openshift.s2i.destination="/opt/s2i/destination"
+      io.openshift.s2i.destination="/opt/s2i/destination" \
+      com.redhat.deployments-dir="/wildfly/standalone/deployments"
 
 # Install Maven, Wildfly 8
 RUN INSTALL_PKGS="tar unzip bc which lsof java-1.8.0-openjdk java-1.8.0-openjdk-devel" && \
