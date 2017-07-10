@@ -1,5 +1,3 @@
-SKIP_SQUASH?=0
-
 build = hack/build.sh
 
 ifeq ($(TARGET),rhel7)
@@ -9,7 +7,6 @@ else
 endif
 
 script_env = \
-	SKIP_SQUASH=$(SKIP_SQUASH)                      \
 	VERSIONS="$(VERSIONS)"                          \
 	OS=$(OS)                                        \
 	VERSION=$(VERSION)                              \

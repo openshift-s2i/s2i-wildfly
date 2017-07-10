@@ -17,4 +17,4 @@ before_install:
   - popd
 
 script:
-  - SKIP_SQUASH=1 make test
+  - make test
