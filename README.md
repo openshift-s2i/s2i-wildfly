@@ -49,12 +49,12 @@ on all provided versions of WildFly.**
 
 Usage
 ---------------------
-To build a simple [jee application](https://github.com/bparees/openshift-jee-sample)
+To build a simple [jee application](https://github.com/openshift/openshift-jee-sample)
 using standalone [S2I](https://github.com/openshift/source-to-image) and then run the
 resulting image with [Docker](http://docker.io) execute:
 
 ```
-$ s2i build git://github.com/bparees/openshift-jee-sample openshift/wildfly-101-centos7 wildflytest
+$ s2i build git://github.com/openshift/openshift-jee-sample openshift/wildfly-101-centos7 wildflytest
 $ docker run -p 8080:8080 wildflytest
 ```
 
