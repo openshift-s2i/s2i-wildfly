@@ -227,6 +227,13 @@ file inside your source code repository.
     POSTGRESQL_PASSWORD
     POSTGRESQL_USER
 
+Known issues
+--------------------
+
+**UTF-8 characters not displayed (or displayed as ```?```)**
+
+This can be solved by providing to the JVM the file encoding. Set variable ```MAVEN_OPTS=-Dfile.encoding=UTF-8``` into the build variables
+
 
 Copyright
 --------------------
