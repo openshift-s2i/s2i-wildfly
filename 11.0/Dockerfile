@@ -8,7 +8,7 @@ MAINTAINER Ben Parees <bparees@redhat.com>
 EXPOSE 8080
 
 ENV WILDFLY_VERSION=11.0.0.Final \
-    MAVEN_VERSION=3.5.0
+    MAVEN_VERSION=3.5.2
 
 LABEL io.k8s.description="Platform for building and running JEE applications on WildFly 11.0.0.Final" \
       io.k8s.display-name="WildFly 11.0.0.Final" \

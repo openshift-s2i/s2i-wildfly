@@ -15,6 +15,7 @@ WildFly versions currently provided are:
 * WildFly v9.0 (deprecated)
 * WildFly v10.0 (10.0.0 Final)
 * WildFly v10.1
+* WildFly v11.0
 
 CentOS versions currently provided are:
 * CentOS7
