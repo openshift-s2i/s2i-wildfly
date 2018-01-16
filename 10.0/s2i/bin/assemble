@@ -250,7 +250,7 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
   restore_saved_artifacts
 
   pushd $LOCAL_SOURCE_DIR &> /dev/null
-  JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
+  JAVA_HOME=/etc/alternatives/java_sdk
 
   if [ -z "$MAVEN_ARGS" ]; then
     export MAVEN_ARGS="package -Popenshift -DskipTests -B"
