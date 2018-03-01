@@ -16,6 +16,7 @@ WildFly versions currently provided are:
 * WildFly v10.0 (10.0.0 Final)
 * WildFly v10.1
 * WildFly v11.0
+* WildFly v12.0
 
 CentOS versions currently provided are:
 * CentOS7
@@ -161,7 +162,7 @@ Repository organization
 Hot Deploy
 ------------------------
 
-Hot deploy is enabled by default for all WildFly versions.  
+Hot deploy is enabled by default for all WildFly versions.
 To deploy a new version of your web application without restarting, you will need to either rsync or scp your war/ear/rar/jar file to the /wildfly/standalone/deployments directory within your pod.
 
 Image name structure
@@ -188,12 +189,12 @@ file inside your source code repository.
 
 * MAVEN_OPTS
 
-    Contains JVM parameters to maven.  Will be appended to JVM arguments that are calculated by the image 
+    Contains JVM parameters to maven.  Will be appended to JVM arguments that are calculated by the image
     itself (e.g. heap size), so values provided here will take precedence.
 
 * JAVA_GC_OPTS
 
-    When set to a non-null value, this value will be passed to the JVM instead of the default garbage collection tuning 
+    When set to a non-null value, this value will be passed to the JVM instead of the default garbage collection tuning
     values defined by the image.
 
 * CONTAINER_CORE_LIMIT
@@ -202,12 +203,12 @@ file inside your source code repository.
 
 * USE_JAVA_DIAGNOSTICS
 
-    When set to a non-null value, various JVM related diagnostics will be turned on such as verbose garbage 
+    When set to a non-null value, various JVM related diagnostics will be turned on such as verbose garbage
     collection tracing.
 
 * AUTO_DEPLOY_EXPLODED
 
-    When set to `true`, Wildfly will automatically deploy exploded war content.  When unset or set to `false`, 
+    When set to `true`, Wildfly will automatically deploy exploded war content.  When unset or set to `false`,
     a `.dodeploy` file must be touched to trigger deployment of exploded war content.
 
 * MYSQL_DATABASE
