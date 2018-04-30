@@ -60,6 +60,14 @@ $ s2i build git://github.com/openshift/openshift-jee-sample openshift/wildfly-10
 $ docker run -p 8080:8080 wildflytest
 ```
 
+You can also use this as a [S2I Runtime Image](https://github.com/openshift/source-to-image/blob/master/docs/runtime_image.md),
+which will produce a final image with source code omitted:
+
+```
+$ s2i build git://github.com/openshift/openshift-jee-sample openshift/wildfly-101-centos7 wildflytest --runtime-image openshift/wildfly-101-centos7
+$ docker run -p 8080:8080 wildflytest
+```
+
 **Accessing the application:**
 ```
 $ curl 127.0.0.1:8080
@@ -112,6 +120,20 @@ Repository organization
           Wildfly modules from the <application source>/provided_modules are copied
           into the wildfly modules directory.
 
+        *   **assemble-runtime**
+          
+          This script will accept standard Wildfly build artifacts as input, and copy 
+          them into a separate runtime image for deployment. 
+          Items in following directories can be accepted as runtime artifacts:
+          
+          `deployments/` - these are copied into the wildfly deployments directory
+
+          `configuration/` - these are copied into the wildfly configuration directory
+
+          `provided_modules/` - these are copied into the wildfly provided modules directory.
+          
+          See the [S2I runtime image documentation](https://github.com/openshift/source-to-image/blob/master/docs/runtime_image.md)
+          for further details.
 
         *   **run**
 
