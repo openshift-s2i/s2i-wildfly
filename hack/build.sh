@@ -1,7 +1,8 @@
 #!/bin/bash -e
 # This script is used to build and test the OpenShift Docker images.
 #
-# Name of resulting image will be: 'NAMESPACE/BASE_IMAGE_NAME-VERSION-OS'.
+# Name of resulting image will be: 'DOCKER_REPO/BASE_IMAGE_NAME-VERSION-OS'.
+# Default docker repo is openshift.
 #
 # BASE_IMAGE_NAME - Usually name of the main component within container.
 # OS - Specifies distribution - "rhel7" or "centos7"
@@ -28,7 +29,7 @@ test -z "$BASE_IMAGE_NAME" && {
   BASE_IMAGE_NAME="${BASE_DIR_NAME#s2i-}"
 }
 
-NAMESPACE="openshift/"
+NAMESPACE="${DOCKER_REPO:-openshift}/"
 
 # Cleanup the temporary Dockerfile created by docker build with version
 trap "rm -f ${DOCKERFILE_PATH}.version" SIGINT SIGQUIT EXIT
