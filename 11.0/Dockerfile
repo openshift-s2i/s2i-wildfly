@@ -8,7 +8,7 @@ MAINTAINER Ben Parees <bparees@redhat.com>
 EXPOSE 8080
 
 ENV WILDFLY_VERSION=11.0.0.Final \
-    MAVEN_VERSION=3.5.2
+    MAVEN_VERSION=3.5.3
 
 LABEL io.k8s.description="Platform for building and running JEE applications on WildFly 11.0.0.Final" \
       io.k8s.display-name="WildFly 11.0.0.Final" \
@@ -19,7 +19,7 @@ LABEL io.k8s.description="Platform for building and running JEE applications on 
       com.redhat.deployments-dir="/wildfly/standalone/deployments" \
       maintainer="Ben Parees <bparees@redhat.com>"
 
-# Install Maven, Wildfly 
+# Install Maven, Wildfly
 RUN INSTALL_PKGS="tar unzip bc which lsof java-1.8.0-openjdk java-1.8.0-openjdk-devel" && \
     yum install -y --enablerepo=centosplus $INSTALL_PKGS && \
     rpm -V $INSTALL_PKGS && \
