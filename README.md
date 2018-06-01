@@ -17,6 +17,7 @@ WildFly versions currently provided are:
 * WildFly v10.1
 * WildFly v11.0
 * WildFly v12.0
+* WildFly v13.0
 
 CentOS versions currently provided are:
 * CentOS7
@@ -121,17 +122,17 @@ Repository organization
           into the wildfly modules directory.
 
         *   **assemble-runtime**
-          
-          This script will accept standard Wildfly build artifacts as input, and copy 
-          them into a separate runtime image for deployment. 
+
+          This script will accept standard Wildfly build artifacts as input, and copy
+          them into a separate runtime image for deployment.
           Items in following directories can be accepted as runtime artifacts:
-          
+
           `deployments/` - these are copied into the wildfly deployments directory
 
           `configuration/` - these are copied into the wildfly configuration directory
 
           `provided_modules/` - these are copied into the wildfly provided modules directory.
-          
+
           See the [S2I runtime image documentation](https://github.com/openshift/source-to-image/blob/master/docs/runtime_image.md)
           for further details.
 
