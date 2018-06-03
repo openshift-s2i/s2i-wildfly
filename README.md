@@ -118,8 +118,8 @@ Repository organization
           Pre-built war files from the <application source>/deployments are moved
           into the wildfly deployment directory.
 
-          Wildfly modules from the <application source>/provided_modules are copied
-          into the wildfly modules directory.
+          Wildfly modules from the <application source>/modules are copied
+          into the wildfly provided modules directory.
 
         *   **assemble-runtime**
 
