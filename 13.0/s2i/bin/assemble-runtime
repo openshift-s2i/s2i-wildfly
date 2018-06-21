@@ -23,6 +23,9 @@ if [ -d $LOCAL_DIR/configuration ]; then
 fi
 
 if [ -d $LOCAL_DIR/provided_modules ]; then
-    echo "Copying modules..."
-    cp -r -v $LOCAL_DIR/provided_modules/* $MODULES_DIR
+    if [ ! -z "$($LOCAL_DIR/provided_modules)" ]; then
+        echo "Copying modules..."
+        cp -r -v $LOCAL_DIR/provided_modules/* $MODULES_DIR
+    fi
 fi
+
