@@ -150,15 +150,35 @@ function ismgmtup() {
   return 1
 }
 
-# insert settings for HTTP proxy into settings.xml if supplied
+# insert settings for HTTP proxy into maven settings.xml if supplied
 function configure_proxy() {
-  if [ -n "$HTTP_PROXY_HOST" -a -n "$HTTP_PROXY_PORT" ]; then
+  
+  # prefer old http_proxy_ format for username/password, but
+  # also allow proxy_ format.
+  HTTP_PROXY_USERNAME=${HTTP_PROXY_USERNAME:-$PROXY_USERNAME}
+  HTTP_PROXY_PASSWORD=${HTTP_PROXY_PASSWORD:-$PROXY_PASSWORD}
+
+  proxy=${HTTPS_PROXY:-${https_proxy:-${HTTP_PROXY:-$http_proxy}}}
+  # if http_proxy_host/port is set, prefer that (oldest mechanism)
+  # before looking at HTTP(S)_PROXY
+  proxyhost=${HTTP_PROXY_HOST:-$(echo $proxy | cut -d : -f 1,2)}
+  proxyport=${HTTP_PROXY_PORT:-$(echo $proxy | cut -d : -f 3)}
+  
+  if [ -n "$proxyhost" ]; then
+    if [[ `echo $proxyhost | grep -i https://` ]]; then
+      proxyport=${proxyport:-443}
+      proxyprotocol="https"
+    else
+      proxyport=${proxyport:-80}
+      proxyprotocol="http"
+    fi
+
     xml="<proxy>\
          <id>genproxy</id>\
          <active>true</active>\
-         <protocol>http</protocol>\
-         <host>$HTTP_PROXY_HOST</host>\
-         <port>$HTTP_PROXY_PORT</port>"
+         <protocol>$proxyprotocol</protocol>\
+         <host>$proxyhost</host>\
+         <port>$proxyport</port>"
     if [ -n "$HTTP_PROXY_USERNAME" -a -n "$HTTP_PROXY_PASSWORD" ]; then
       xml="$xml\
          <username>$HTTP_PROXY_USERNAME</username>\
