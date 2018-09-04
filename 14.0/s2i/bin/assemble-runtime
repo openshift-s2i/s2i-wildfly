@@ -1,0 +1,31 @@
+#!/bin/bash
+
+echo "Asssembling runtime environment..."
+DEPLOY_DIR=/wildfly/standalone/deployments
+CONFIG_DIR=/wildfly/standalone/configuration
+MODULES_DIR=/wildfly/provided_modules
+
+echo "Creating deployment directories..."
+mkdir -p $DEPLOY_DIR
+mkdir -p $CONFIG_DIR
+mkdir -p $MODULES_DIR
+
+LOCAL_DIR="${HOME}"
+
+if [ -d $LOCAL_DIR/deployments ]; then
+    echo "Copying deployments..."
+    cp -r -v $LOCAL_DIR/deployments/* $DEPLOY_DIR
+fi
+
+if [ -d $LOCAL_DIR/configuration ]; then
+    echo "Copying configurations..."
+    cp -r -v $LOCAL_DIR/configuration/* $CONFIG_DIR
+fi
+
+if [ -d $LOCAL_DIR/provided_modules ]; then
+    if [ ! -z "$($LOCAL_DIR/provided_modules)" ]; then
+        echo "Copying modules..."
+        cp -r -v $LOCAL_DIR/provided_modules/* $MODULES_DIR
+    fi
+fi
+
