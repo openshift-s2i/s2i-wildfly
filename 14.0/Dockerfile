@@ -1,5 +1,5 @@
 # This image provides a base for building and running WildFly applications.
-# It builds using maven and runs the resulting artifacts on WildFly 14.0.0 Final
+# It builds using maven and runs the resulting artifacts on WildFly 14.0.1 Final
 
 FROM centos/s2i-base-centos7
 
@@ -7,11 +7,11 @@ MAINTAINER Ben Parees <bparees@redhat.com>
 
 EXPOSE 8080
 
-ENV WILDFLY_VERSION=14.0.0.Final \
+ENV WILDFLY_VERSION=14.0.1.Final \
     MAVEN_VERSION=3.5.4
 
-LABEL io.k8s.description="Platform for building and running JEE applications on WildFly 14.0.0.Final" \
-      io.k8s.display-name="WildFly 14.0.0.Final" \
+LABEL io.k8s.description="Platform for building and running JEE applications on WildFly 14.0.1.Final" \
+      io.k8s.display-name="WildFly 14.0.1.Final" \
       io.openshift.expose-services="8080:http" \
       io.openshift.tags="builder,wildfly,wildfly14" \
       io.openshift.s2i.assemble-input-files="/wildfly/standalone/deployments;/wildfly/standalone/configuration;/wildfly/provided_modules" \
