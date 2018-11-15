@@ -30,20 +30,23 @@ RUN INSTALL_PKGS="tar unzip bc which lsof java-1.8.0-openjdk java-1.8.0-openjdk-
     mkdir -p $HOME/.m2 && \
     mkdir -p /wildfly && \
     (curl -v https://download.jboss.org/wildfly/$WILDFLY_VERSION/wildfly-$WILDFLY_VERSION.tar.gz | tar -zx --strip-components=1 -C /wildfly) && \
-    mkdir -p /opt/s2i/destination
+    mkdir -p /opt/s2i/destination && \
+    mkdir- p /data/logs/paascloud/bootstrap
 
 # Add s2i wildfly customizations
 ADD ./contrib/wfmodules/ /wildfly/modules/
 ADD ./contrib/wfbin/standalone.conf /wildfly/bin/standalone.conf
 ADD ./contrib/wfcfg/standalone.xml /wildfly/standalone/configuration/standalone.xml
 ADD ./contrib/settings.xml $HOME/.m2/
+ADD ./contrib/settings-security.xml $HOME/.m2/
 
 # Copy the S2I scripts from the specific language image to $STI_SCRIPTS_PATH
 COPY ./s2i/bin/ $STI_SCRIPTS_PATH
 
 RUN chown -R 1001:0 /wildfly && chown -R 1001:0 $HOME && \
     chmod -R ug+rwX /wildfly && \
-    chmod -R g+rw /opt/s2i/destination
+    chmod -R g+rw /opt/s2i/destination && \
+    chmod -R g+rw /data/logs/paascloud/bootstrap
 
 USER 1001
 
