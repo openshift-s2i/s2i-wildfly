@@ -31,7 +31,14 @@ RUN INSTALL_PKGS="tar unzip bc which lsof java-1.8.0-openjdk java-1.8.0-openjdk-
     mkdir -p /wildfly && \
     (curl -v https://download.jboss.org/wildfly/$WILDFLY_VERSION/wildfly-$WILDFLY_VERSION.tar.gz | tar -zx --strip-components=1 -C /wildfly) && \
     mkdir -p /opt/s2i/destination && \
-    mkdir- p /data/logs/paascloud/bootstrap
+    mkdir -p /data/logs/paascloud/bootstrap && \
+    mkdir -p /data/logs/paascloud/paascloud-provider-uac && \
+    mkdir -p /data/logs/paascloud/paascloud-provider-opc && \
+    mkdir -p /data/logs/paascloud/paascloud-provider-tpc && \
+    mkdir -p /data/logs/paascloud/paascloud-provider-pdc && \
+    mkdir -p /data/logs/paascloud/paascloud-smarthome-app && \
+    mkdir -p /data/logs/paascloud/paascloud-device-transfer && \
+    mkdir -p /data/logs/paascloud/paascloud-device-gateway
 
 # Add s2i wildfly customizations
 ADD ./contrib/wfmodules/ /wildfly/modules/
@@ -46,7 +53,14 @@ COPY ./s2i/bin/ $STI_SCRIPTS_PATH
 RUN chown -R 1001:0 /wildfly && chown -R 1001:0 $HOME && \
     chmod -R ug+rwX /wildfly && \
     chmod -R g+rw /opt/s2i/destination && \
-    chmod -R g+rw /data/logs/paascloud/bootstrap
+    chmod -R g+rw /data/logs/paascloud/bootstrap && \
+    chmod -R g+rw /data/logs/paascloud/paascloud-provider-uac && \
+    chmod -R g+rw /data/logs/paascloud/paascloud-provider-opc && \
+    chmod -R g+rw /data/logs/paascloud/paascloud-provider-tpc && \
+    chmod -R g+rw /data/logs/paascloud/paascloud-provider-pdc && \
+    chmod -R g+rw /data/logs/paascloud/paascloud-smarthome-app && \
+    chmod -R g+rw /data/logs/paascloud/paascloud-device-transfer && \
+    chmod -R g+rw /data/logs/paascloud/paascloud-device-gateway
 
 USER 1001
 
