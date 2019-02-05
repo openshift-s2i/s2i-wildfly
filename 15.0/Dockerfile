@@ -20,7 +20,7 @@ LABEL io.k8s.description="Platform for building and running JEE applications on 
       maintainer="Ben Parees <bparees@redhat.com>"
 
 # Install Maven, Wildfly
-RUN INSTALL_PKGS="tar unzip bc which lsof java-1.8.0-openjdk java-1.8.0-openjdk-devel" && \
+RUN INSTALL_PKGS="tar unzip bc which lsof java-11-openjdk java-11-openjdk-devel" && \
     yum install -y --enablerepo=centosplus $INSTALL_PKGS && \
     rpm -V $INSTALL_PKGS && \
     yum clean all -y && \
