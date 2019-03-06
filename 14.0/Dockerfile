@@ -38,7 +38,8 @@ RUN INSTALL_PKGS="tar unzip bc which lsof java-1.8.0-openjdk java-1.8.0-openjdk-
     mkdir -p /data/logs/paascloud/paascloud-provider-pdc && \
     mkdir -p /data/logs/paascloud/paascloud-smarthome-app && \
     mkdir -p /data/logs/paascloud/paascloud-device-transfer && \
-    mkdir -p /data/logs/paascloud/paascloud-device-gateway
+    mkdir -p /data/logs/paascloud/paascloud-device-gateway && \
+    mkdir -p /data/logs/paascloud/paascloud-notifier
 
 # Add s2i wildfly customizations
 ADD ./contrib/wfmodules/ /wildfly/modules/
@@ -60,7 +61,8 @@ RUN chown -R 1001:0 /wildfly && chown -R 1001:0 $HOME && \
     chmod -R g+rw /data/logs/paascloud/paascloud-provider-pdc && \
     chmod -R g+rw /data/logs/paascloud/paascloud-smarthome-app && \
     chmod -R g+rw /data/logs/paascloud/paascloud-device-transfer && \
-    chmod -R g+rw /data/logs/paascloud/paascloud-device-gateway
+    chmod -R g+rw /data/logs/paascloud/paascloud-device-gateway && \
+    chmod -R g+rw /data/logs/paascloud/paascloud-notifier
 
 USER 1001
 

@@ -3,7 +3,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
 	<!-- 本地Maven储存库地址，用来定义本地的Maven库的存储地址，即从Maven仓库中下载的文件的存储的位置 -->
-	<localRepository>/root/.m2/repository</localRepository>
+	<!-- <localRepository>/root/.m2/repository</localRepository> -->
 	<interactiveMode>true</interactiveMode>
 	<offline>false</offline>
 	<pluginGroups>
