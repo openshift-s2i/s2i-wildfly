@@ -1,5 +1,5 @@
 # This image provides a base for building and running WildFly applications.
-# It builds using maven and runs the resulting artifacts on WildFly 15.0.0 Final
+# It builds using maven and runs the resulting artifacts on WildFly 15.0.1 Final
 
 FROM centos/s2i-base-centos7
 
@@ -7,11 +7,11 @@ MAINTAINER Ben Parees <bparees@redhat.com>
 
 EXPOSE 8080
 
-ENV WILDFLY_VERSION=15.0.0.Final \
+ENV WILDFLY_VERSION=15.0.1.Final \
     MAVEN_VERSION=3.5.4
 
-LABEL io.k8s.description="Platform for building and running JEE applications on WildFly 15.0.0.Final" \
-      io.k8s.display-name="WildFly 15.0.0.Final" \
+LABEL io.k8s.description="Platform for building and running JEE applications on WildFly 15.0.1.Final" \
+      io.k8s.display-name="WildFly 15.0.1.Final" \
       io.openshift.expose-services="8080:http" \
       io.openshift.tags="builder,wildfly,wildfly15" \
       io.openshift.s2i.assemble-input-files="/wildfly/standalone/deployments;/wildfly/standalone/configuration;/wildfly/provided_modules" \
@@ -20,7 +20,7 @@ LABEL io.k8s.description="Platform for building and running JEE applications on 
       maintainer="Ben Parees <bparees@redhat.com>"
 
 # Install Maven, Wildfly
-RUN INSTALL_PKGS="tar unzip bc which lsof java-1.8.0-openjdk java-1.8.0-openjdk-devel" && \
+RUN INSTALL_PKGS="tar unzip bc which lsof java-11-openjdk java-11-openjdk-devel" && \
     yum install -y --enablerepo=centosplus $INSTALL_PKGS && \
     rpm -V $INSTALL_PKGS && \
     yum clean all -y && \
