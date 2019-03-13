@@ -1,0 +1,401 @@
+#!/bin/bash
+
+PID_FILE=/tmp/wildfly.pid
+
+# restore maven dependencies downloaded in a previous build,
+# so they do not have to be downloaded again.
+# /opt/s2i/destination/artifacts will only be present in the incremental build scenario
+# in which the target image name is an existing docker image which contains
+# dependencies from a prior build execution.
+function restore_saved_artifacts() {
+  if [ "$(ls -A /opt/s2i/destination/artifacts/ 2>/dev/null)" ]; then
+    echo -n "Restoring saved artifacts from prior build..."
+    mv /opt/s2i/destination/artifacts/.m2/repository $HOME/.m2
+  fi
+}
+
+# Return the deployment-scanner configuration
+function getscanconfig() {
+  count=0
+  while [ ${count} -lt 10 ]; do
+    scanconfig=`/wildfly/bin/jboss-cli.sh -u=$ADMIN -p=$PASSWORD -c "/subsystem=deployment-scanner/:read-resource(recursive=true)" 2>&1 || :`
+    if [[ $scanconfig =~ '"outcome" => "success"' ]] ; then
+      SCANCONFIG=$scanconfig
+      return
+    fi
+    let count+=1
+
+    sleep 2
+  done
+}
+
+# Verify that the deployment scanner has finished running
+function waitondeployments() {
+  if ! ismgmtup; then
+    echo "Timed out waiting for management listening port"
+    echo "Could not connect to JBoss management interface, skipping deployment verification"
+  else
+    SCANCONFIG=""
+    c=0
+    while [ "$SCANCONFIG" == "" ] && [ $c -lt 5 ]; do
+      getscanconfig
+      if [ "$SCANCONFIG" != "" ]; then
+        break
+      fi
+      sleep 2
+      let c=c+1
+    done
+
+    if [ "$SCANCONFIG" == "" ]; then
+      echo "Could not connect to JBoss management interface, skipping deployment verification"
+    elif [[ $SCANCONFIG =~ '"scan-enabled" => true' ]]; then
+      DEPLOYMENTS_DIR=/wildfly/standalone/deployments
+      pushd $DEPLOYMENTS_DIR
+
+      artifacts=()
+
+      while read -r -d $'\0'; do
+        artifacts+=("$REPLY")
+      done < <(find . -iregex '.*\.\([ejrsw]ar\|zip\)$' -print0)
+
+      deployexploded=false
+      if [[ $SCANCONFIG =~ '"auto-deploy-exploded" => true' ]]; then
+        deployexploded=true
+      fi
+      deployarchive=false
+      if [[ $SCANCONFIG =~ '"auto-deploy-zipped" => true' ]]; then
+        deployarchive=true
+      fi
+
+      artifactsdeployed=()
+      artifactsfailed=()
+      artifactsskipped=()
+      artifactsunknown=()
+      for artifact in ${artifacts[*]}; do
+        if ( [ -f $artifact ] && $deployarchive ) || ( [ -d $artifact ] && $deployexploded ); then
+          # TODO triple check this logic, add a timeout
+          while [[ -f ${artifact}.isdeploying || -f ${artifact}.pending ]]; do
+            echo "Artifact: ${artifact} is still deploying"
+            sleep 10
+          done
+
+          if [ -f ${artifact}.deployed ]; then
+            artifactsdeployed+=($artifact)
+          elif [ -f ${artifact}.failed ]; then
+            artifactsfailed+=($artifact)
+          else
+            artifactsunknown+=($artifact)
+          fi
+
+        else
+          # artifact skipped because of deployment scanner config
+          artifactsskipped+=($artifact)
+        fi
+      done
+
+      popd
+
+      if [ ${#artifactsskipped[@]} -gt 0 ]; then
+        echo "Artifacts skipped because of deployment-scanner configuration: ${artifactsskipped[*]}"
+      fi
+
+      if [ ${#artifactsfailed[@]} -gt 0 ]; then
+        echo "Failed deployments: ${artifactsfailed[*]}"
+        return 1
+      fi
+
+      if [ ${#artifactsdeployed[@]} -gt 0 ]; then
+        echo "Artifacts deployed: ${artifactsdeployed[*]}"
+      fi
+
+      if [ ${#artifactsunknown[@]} -gt 0 ]; then
+        echo "Artifacts in an unknown state: ${artifactsunknown[*]}"
+      fi
+    else
+      echo "Deployment scanner disabled, skipping deployment verification"
+    fi
+  fi
+}
+
+# Check if the server http port is up
+function ishttpup() {
+  count=0
+  while [ ${count} -lt 64 ]
+  do
+    if ! curl --head --silent --fail --location --max-time 2 "0.0.0.0:8080" > /dev/null; then
+      echo "Found 0.0.0.0:8080 listening port"
+      return 0
+    fi
+
+    # if the process failed to start, error out immediately
+    # rather than waiting for the timeout on the port being available.
+    pid=$(cat $PID_FILE);
+    if ! ps | grep -v grep | grep $pid > /dev/null; then
+      return 2
+    fi
+
+    let count=${count}+1
+  done
+
+  return 1
+}
+
+# Check if the server mgmt port is up
+function ismgmtup() {
+  if ! curl --head --silent --fail --location --max-time 16 "0.0.0.0:9990" > /dev/null; then
+    echo "Found 0.0.0.0:9990 listening port"
+    return 0
+  fi
+
+  return 1
+}
+
+# insert settings for HTTP proxy into maven settings.xml if supplied
+function configure_proxy() {
+  
+  # prefer old http_proxy_ format for username/password, but
+  # also allow proxy_ format.
+  HTTP_PROXY_USERNAME=${HTTP_PROXY_USERNAME:-$PROXY_USERNAME}
+  HTTP_PROXY_PASSWORD=${HTTP_PROXY_PASSWORD:-$PROXY_PASSWORD}
+
+  proxy=${HTTPS_PROXY:-${https_proxy:-${HTTP_PROXY:-$http_proxy}}}
+  # if http_proxy_host/port is set, prefer that (oldest mechanism)
+  # before looking at HTTP(S)_PROXY
+  proxyhost=${HTTP_PROXY_HOST:-$(echo $proxy | cut -d : -f 1,2)}
+  proxyport=${HTTP_PROXY_PORT:-$(echo $proxy | cut -d : -f 3)}
+  
+  if [ -n "$proxyhost" ]; then
+    if [[ `echo $proxyhost | grep -i https://` ]]; then
+      proxyport=${proxyport:-443}
+      proxyprotocol="https"
+    else
+      proxyport=${proxyport:-80}
+      proxyprotocol="http"
+    fi
+
+    xml="<proxy>\
+         <id>genproxy</id>\
+         <active>true</active>\
+         <protocol>$proxyprotocol</protocol>\
+         <host>$proxyhost</host>\
+         <port>$proxyport</port>"
+    if [ -n "$HTTP_PROXY_USERNAME" -a -n "$HTTP_PROXY_PASSWORD" ]; then
+      xml="$xml\
+         <username>$HTTP_PROXY_USERNAME</username>\
+         <password>$HTTP_PROXY_PASSWORD</password>"
+    fi
+    if [ -n "$HTTP_PROXY_NONPROXYHOSTS" ]; then
+      xml="$xml\
+         <nonProxyHosts>$HTTP_PROXY_NONPROXYHOSTS</nonProxyHosts>"
+    fi
+  xml="$xml\
+       </proxy>"
+    sed -i "s|<!-- ### configured http proxy ### -->|$xml|" $HOME/.m2/settings.xml
+  fi
+}
+
+# insert settings for mirrors/repository managers into settings.xml if supplied
+function configure_mirrors() {
+  if [ -n "$MAVEN_MIRROR_URL" ]; then
+    xml="    <mirror>\
+      <id>mirror.default</id>\
+      <url>$MAVEN_MIRROR_URL</url>\
+      <mirrorOf>external:*</mirrorOf>\
+    </mirror>"
+    sed -i "s|<!-- ### configured mirrors ### -->|$xml|" $HOME/.m2/settings.xml
+  fi
+}
+
+function move_artifacts() {
+  dir=$1
+  types=
+  shift
+  while [ $# -gt 0 ]; do
+    types="$types;$1"
+    shift
+  done
+
+  for d in $(echo $dir | tr "," "\n")
+  do
+    shift
+    for t in $(echo $types | tr ";" "\n")
+    do
+      echo "Moving all $t artifacts from $LOCAL_SOURCE_DIR/$d directory into $DEPLOY_DIR for later deployment..."
+      chgrp -fR 0 $LOCAL_SOURCE_DIR/$d/*.$t
+      chmod -fR g+rw $LOCAL_SOURCE_DIR/$d/*.$t
+      mv -v $LOCAL_SOURCE_DIR/$d/*.$t $DEPLOY_DIR 2> /dev/null
+    done
+  done
+}
+
+ADMIN=admin
+PASSWORD=passw0rd_
+
+# Source code provided to S2I is at ${HOME}
+LOCAL_SOURCE_DIR=${HOME}
+mkdir -p $LOCAL_SOURCE_DIR
+
+# the subdirectory within LOCAL_SOURCE_DIR from where we should copy build
+# artifacts (*.war, *.jar)
+ARTIFACT_DIR=${ARTIFACT_DIR:-target}
+
+# Resulting WAR files will be deployed to /wildfly/standalone/deployments
+DEPLOY_DIR=/wildfly/standalone/deployments
+mkdir -p $DEPLOY_DIR
+
+# Copy the source for compilation
+cp -Rf /opt/s2i/destination/src/. $LOCAL_SOURCE_DIR
+chgrp -R 0 $LOCAL_SOURCE_DIR
+chmod -R g+rw $LOCAL_SOURCE_DIR
+
+if [ -d $LOCAL_SOURCE_DIR/configuration ]; then
+  echo "Copying config files from project..."
+
+  if [ -f $LOCAL_SOURCE_DIR/configuration/settings.xml ]; then
+    mkdir -p $HOME/.m2
+    mv $LOCAL_SOURCE_DIR/configuration/settings.xml $HOME/.m2
+  fi
+
+  cp -v $LOCAL_SOURCE_DIR/configuration/* /wildfly/standalone/configuration/ 2> /dev/null
+fi
+
+configure_proxy
+configure_mirrors
+
+# If a pom.xml is present, this is a normal build scenario
+# so run maven.
+if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
+  # restore any maven dependencies which will be present if this is an
+  # incremental build
+  restore_saved_artifacts
+
+  pushd $LOCAL_SOURCE_DIR &> /dev/null
+  JAVA_HOME=/etc/alternatives/java_sdk
+
+  if [ -z "$MAVEN_ARGS" ]; then
+    export MAVEN_ARGS="package -Popenshift -DskipTests -B"
+  fi
+
+  # If MAVEN_SETTINGS specified will always add to MAVEN_ARGS
+  # Can be relative to application root
+  # Can be global to image
+  if [ -z "$MAVEN_SETTINGS" ]; then
+    export MAVEN_ARGS="$MAVEN_ARGS -s $HOME/.m2/settings.xml"
+  else
+    if [[ "$MAVEN_SETTINGS" = /* ]]; then
+       [ ! -e "$MAVEN_SETTINGS" ] && echo "Specified settings file does not exist in the image. [$MAVEN_SETTINGS]" && exit 1
+       export MAVEN_ARGS="$MAVEN_ARGS -s $MAVEN_SETTINGS"
+    else
+       [ ! -e "$LOCAL_SOURCE_DIR/$MAVEN_SETTINGS" ] && echo "Specified settings file does not exist in your source code. [$MAVEN_SETTINGS]" && exit 1
+       export MAVEN_ARGS="$MAVEN_ARGS -s $LOCAL_SOURCE_DIR/$MAVEN_SETTINGS"
+    fi
+  fi
+
+  # Append user provided args
+  if [ -n "$MAVEN_ARGS_APPEND" ]; then
+    export MAVEN_ARGS="$MAVEN_ARGS $MAVEN_ARGS_APPEND"
+  fi
+
+  CONTAINER_HEAP_PERCENT=${CONTAINER_HEAP_PERCENT:-0.50}
+  CONTAINER_MEMORY_IN_BYTES=`cat /sys/fs/cgroup/memory/memory.limit_in_bytes`
+
+  DEFAULT_MEMORY_CEILING=$((2**40-1))
+  if [ "${CONTAINER_MEMORY_IN_BYTES}" -lt "${DEFAULT_MEMORY_CEILING}" ]; then
+    CONTAINER_MEMORY_IN_MB=$((${CONTAINER_MEMORY_IN_BYTES}/1024**2))
+    CONTAINER_HEAP_MAX=$(echo "${CONTAINER_MEMORY_IN_MB} ${CONTAINER_HEAP_PERCENT}" | awk '{ printf "%d", $1 * $2 }')
+    JAVA_HEAP_MAX=-Xmx${CONTAINER_HEAP_MAX}
+  fi
+
+  if [ -z $JAVA_GC_OPTS ]; then
+    # note - MaxPermSize no longer valid with v8 of the jdk ... used to have -XX:MaxPermSize=100m
+    JAVA_GC_OPTS="-XX:+UseParallelGC -XX:MinHeapFreeRatio=20 -XX:MaxHeapFreeRatio=40 -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -XX:MaxMetaspaceSize=100m"
+  fi
+  if [ ! -z "${CONTAINER_CORE_LIMIT}" ]; then
+    JAVA_CORE_LIMIT="-XX:ParallelGCThreads=${CONTAINER_CORE_LIMIT} -Djava.util.concurrent.ForkJoinPool.common.parallelism=${CONTAINER_CORE_LIMT} -XX:CICompilerCount=2"
+  fi
+  if [ ! -z "${USE_JAVA_DIAGNOSTICS}" ]; then
+    JAVA_DIAGNOSTICS="-XX:NativeMemoryTracking=summary -XX:+PrintGC -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+UnlockDiagnosticVMOptions"
+  fi
+
+  # When arguments such as max heap size are repeated, the JVM respects the last value provided,
+  # so by setting the user provided MAVEN_OPTS value last, we allow the user to override any 
+  # of the values we calculated above.
+  MAVEN_OPTS=$JAVA_GC_OPTS $JAVA_HEAP_MAX $JAVA_CORE_LIMIT $JAVA_DIAGNOSTICS $MAVEN_OPTS
+
+  echo "Found pom.xml... attempting to build with 'mvn ${MAVEN_ARGS}'"
+
+  mvn --version
+  mvn $MAVEN_ARGS
+
+  ERR=$?
+  if [ $ERR -ne 0 ]; then
+    echo "Aborting due to error code $ERR from mvn package"
+    exit $ERR
+  fi
+
+  echo "Moving built war files into $DEPLOY_DIR for later deployment..."
+  popd &> /dev/null
+else
+  echo "Moving binaries in source directory into $DEPLOY_DIR for later deployment..."
+  move_artifacts "." war ear rar jar
+fi
+
+# Move built artifacts (if any!) from the target/ directory
+# (or $ARTIFACT_DIR if specified)
+if [ -d $LOCAL_SOURCE_DIR/$ARTIFACT_DIR ]; then
+  move_artifacts "$ARTIFACT_DIR" war ear rar jar
+fi
+
+if [ -d $LOCAL_SOURCE_DIR/deployments ]; then
+  move_artifacts "deployments" war ear rar jar
+fi
+
+if [ -d $LOCAL_SOURCE_DIR/cfg ]; then
+  echo "Copying config files from project..."
+  cp cfg/* /wildfly/standalone/configuration
+  chgrp -R 0 /wildfly/standalone/configuration
+  chmod -R g+rw /wildfly/standalone/configuration
+fi
+
+# this dir needs to always exist because the extended build
+# flow expects to copy from it (even if it's empty)
+mkdir /wildfly/provided_modules
+if [ -d $LOCAL_SOURCE_DIR/modules ]; then
+  echo "Copying modules from project..."
+  cp -r modules/* /wildfly/provided_modules
+  chgrp -R 0 /wildfly/provided_modules
+  chmod -R g+rw /wildfly/provided_modules
+fi
+echo "...done"
+
+# This logic is intended to deploy the app as part of assemble
+# but many apps fail to deploy because they require additional
+# resources to be present, eg databases, which are not available
+# at build time, so don't do this for now.
+
+# add admin user
+#/wildfly/bin/add-user.sh $ADMIN $PASSWORD --silent
+
+#echo "Starting wildfly for deployment"
+#/wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 &
+#echo $! > ${PID_FILE}
+
+#rc=0
+#ishttpup || rc=$?
+#if [ $rc -eq 1 ]; then
+#  echo "Timed out waiting for http listening port for wildfly process"
+#  exit 1
+#elif [ $rc -eq 2 ]; then
+#  echo "wildfly process failed to start"
+#  exit 2
+#fi
+
+#waitondeployments
+#rc=$?
+#/wildfly/bin/jboss-cli.sh -u=$ADMIN -p=$PASSWORD -c ":shutdown"
+#rm /tmp/wildfly.pid
+
+# remove admin user
+#sed -i '/^#/! s/^/#/' /wildfly/{standalone,domain}/configuration/mgmt-{groups,users}.properties
+
+exit $rc
