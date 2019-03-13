@@ -1,0 +1,24 @@
+#!/bin/sh
+
+cat <<EOF
+This is an S2I WildFly v16.0.0 Final centos base image responsible for consuming a JEE project
+and deploying it onto WildFly application server.
+To use it, install S2I: https://github.com/openshift/source-to-image.
+
+Sample invocation:
+
+s2i build git://github.com/openshift/openshift-jee-sample openshift/wildfly-160-centos wildflytest
+
+You can then run the resulting image via:
+docker run -p 8080:8080 wildflytest
+
+Details:
+If a pom.xml is present in the source directory, the project is built with maven and the
+output in target will be copied into the Wildfly deployments directory.
+If war files are present in <src>/target or <src>/deployments they will be copied
+into the Wildfly deployments directory as is.
+Wildfly configuration can be overridden by supplying files in <src>/cfg, these files
+will be copied into Wildfly standalone/configuration.
+The default Maven build arguments can be overridden by setting MAVEN_ARGS via the "--env" argument to S2I
+The default Maven build arguments can be appended by setting MAVEN_ARGS_APPEND.
+EOF
