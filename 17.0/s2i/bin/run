@@ -1,0 +1,3 @@
+#!/bin/bash
+# use the Pod IP address for the public interface
+exec /wildfly/bin/standalone.sh -b $(hostname -i) -bmanagement 0.0.0.0
