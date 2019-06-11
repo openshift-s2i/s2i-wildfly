@@ -1,7 +1,14 @@
-Wildfly - CentOS Docker image
+REPOSITORY DEPRECATED
 ========================================
 
-[![Build Status](https://travis-ci.org/openshift-s2i/s2i-wildfly.svg?branch=master)](https://travis-ci.org/openshift-s2i/s2i-wildfly)
+The s2i Wildfly image is now maintained [here](https://github.com/wildfly/wildfly-s2i).
+
+The Wildfly v8.1 through v16 images can still be built from this repository, but
+WF17 onward will come from the new location.
+
+
+Wildfly - CentOS Docker image
+========================================
 
 This repository contains the source for building various versions of
 the WildFly application as a reproducible Docker image using
