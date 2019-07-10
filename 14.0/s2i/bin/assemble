@@ -324,10 +324,10 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
 
   echo "Found pom.xml... attempting to build with 'mvn ${MAVEN_ARGS}'"
 
-  sed -i s/'${paascloud.master.version}'/$PAASCLOUD_MASTER_VERSION/g `grep paascloud.master.version -rl --include="pom.xml" $LOCAL_SOURCE_DIR`
-  sed -i s/'${paascloud.provider.version}'/$PAASCLOUD_PROVIDER_VERSION/g `grep paascloud.provider.version -rl --include="pom.xml" $LOCAL_SOURCE_DIR`
-  sed -i s/'${paascloud.common.version}'/$PAASCLOUD_COMMON_VERSION/g `grep paascloud.common.version -rl --include="pom.xml" $LOCAL_SOURCE_DIR`
-  sed -i s/'${paascloud.security.version}'/$PAASCLOUD_SECURITY_VERSION/g `grep paascloud.security.version -rl --include="pom.xml" $LOCAL_SOURCE_DIR`
+  sed -i s/'2.0.0.RC2-SNAPSHOT'/$PAASCLOUD_MASTER_VERSION/g `grep paascloud.master.version -rl --include="pom.xml" $LOCAL_SOURCE_DIR`
+  sed -i s/'2.0.0.RC2-SNAPSHOT'/$PAASCLOUD_PROVIDER_VERSION/g `grep paascloud.provider.version -rl --include="pom.xml" $LOCAL_SOURCE_DIR`
+  sed -i s/'2.0.0.RC2-SNAPSHOT'/$PAASCLOUD_COMMON_VERSION/g `grep paascloud.common.version -rl --include="pom.xml" $LOCAL_SOURCE_DIR`
+  sed -i s/'2.0.0.RC2-SNAPSHOT'/$PAASCLOUD_SECURITY_VERSION/g `grep paascloud.security.version -rl --include="pom.xml" $LOCAL_SOURCE_DIR`
 
   mvn --version
   mvn $MAVEN_ARGS
