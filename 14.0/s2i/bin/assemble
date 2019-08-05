@@ -324,7 +324,10 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
 
   echo "Found pom.xml... attempting to build with 'mvn ${MAVEN_ARGS}'"
 
-  sed -i s/'2.0.0.RC2-SNAPSHOT'/$PAASCLOUD_VERSION/g `grep 2.0.0.RC2-SNAPSHOT -rl --include="pom.xml" $LOCAL_SOURCE_DIR`
+  #替换所有pom中的版本占位符
+  sed -i s/'${PAASCLOUD_VERSION}'/$PAASCLOUD_VERSION/g `grep PAASCLOUD_VERSION -rl --include="pom.xml" $LOCAL_SOURCE_DIR`
+  #替换所有Dockfile中的版本占位符
+  sed -i s/'${PAASCLOUD_VERSION}'/$PAASCLOUD_VERSION/g `grep PAASCLOUD_VERSION -rl --include="Dockerfile" $LOCAL_SOURCE_DIR`
 
   mvn --version
   mvn $MAVEN_ARGS
